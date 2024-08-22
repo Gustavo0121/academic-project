@@ -10,4 +10,4 @@ versionfile = Path(__file__).parent / 'version.txt'
 
 
 if __name__ == '__main__':  # pragma: no cover
-    logging.info('(%s) %s by %s', __title__)
+    logging.info('(%s)', __title__)

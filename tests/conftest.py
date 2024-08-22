@@ -9,7 +9,7 @@ import pytest
 @pytest.fixture
 def temp_file() -> Path:
     """Return temporary file."""
-    return Path(NamedTemporaryFile().name)
+    return Path(NamedTemporaryFile().name) # noqa: SIM115
 
 
 @pytest.fixture(scope='session')
