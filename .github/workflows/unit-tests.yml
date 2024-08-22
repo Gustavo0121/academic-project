@@ -28,7 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip poetry
-        poetry install -E all
+        poetry install
 
     - name: Lint with ruff
       run: |
