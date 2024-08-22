@@ -96,10 +96,10 @@ target-version = "py310"
 # Decrease the maximum line length to 79 character.
 line-length = 79
 
-namespace-packages = ["incolume/py/planalto_legis"]
+namespace-packages = ["academic/project"]
 
 # Allow imports relative to directories
-src = ["incolume/", "tests/", "examples/"]
+src = ["academic/", "tests/", "examples/"]
 
 fix = false
 force-exclude = true
@@ -269,9 +269,9 @@ max-args = 4
 #use_vars = true   # set use_vars automaticly
 
 [tool.taskipy.variables]
-path = "incolume/ tests/"
-CHANGELOGFILE = "docs/about/CHANGELOG.md"
-URLCOMPARE = "https://github.com/development-incolume/incolume.py.despacho-presidencial/compare"
+path = "academic/ tests/"
+CHANGELOGFILE = "CHANGELOG.md"
+URLCOMPARE = "https://github.com/Gustavo0121/academic-project/compare"
 
 [tool.taskipy.tasks]
 clean = {cmd = "echo -n 'Starting cleanning environment..'; find ./ \\( -wholename '*report_coverage' -o -name '*.pyc' -o -name '*~' -o -name '*.log' -o -name '*.log.*' -o -name '.cache' -o -name '.coverage' -o -name '*.spec' \\) -delete ; echo ' ok' ",  help = "Shallow clean into environment (.pyc, .cache, .egg, .log, et all)" }
