@@ -1,5 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
+from pathlib import Path
+
+if Path('lista_de_tarefas.txt').is_file():
+    with open("lista_de_tarefas.txt", "w") as arquivo:
+        arquivo.write('')
 
 # Função para adicionar uma nova tarefa à lista
 def adicionar_tarefa():
@@ -38,7 +43,7 @@ def excluir_tarefa():
 # Função para salvar a lista de tarefas em um arquivo de texto
 def salvar_lista():
     tarefas = lista_tarefas.get(0, tk.END)
-    with open("teste.txt", "w") as arquivo:
+    with open("lista_de_tarefas.txt", "w") as arquivo:
         for tarefa in tarefas:
             arquivo.write(tarefa + "\n")
 
