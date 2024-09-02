@@ -3,6 +3,7 @@
 import logging
 import os
 
+from academic.project.views.router import route_change, view_pop
 import flet as ft
 
 if os.getenv('DEBUG_MODE'):
@@ -20,6 +21,9 @@ def main(page: ft.Page) -> None:
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
 
+    page.on_route_change = route_change
+    page.on_view_pop = view_pop
+    page.go(page.route)
 
 def app():
     """Run app."""
