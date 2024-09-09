@@ -8,7 +8,7 @@ from academic.project.views import pages
 
 routes = {
     '/': pages.main_view,
-    '/notfound' : pages.not_found_view,
+    '/notfound': pages.not_found_view,
 }
 
 
