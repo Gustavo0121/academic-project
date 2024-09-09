@@ -15,6 +15,7 @@ class FormAluno(ft.View):
         """Init for FormAluno class."""
         super().__init__()
         self.events = events
+        self.appbar = AppBar(events, 'Sistema de notas')
         self.route: str | None = kwargs.get('route')
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
@@ -69,3 +70,57 @@ class FormAluno(ft.View):
         for campos in self.controls[0].content.controls:
             campos.value = ''
         event.page.update()
+
+
+class TableView(ft.View):
+    """Classe para visualizar as notas dos alunos."""
+
+    def __init__(self, events: ft.ControlEvent, **kwargs: str):
+        """Init for TableView class."""
+        super().__init__()
+        self.events = events
+        self.appbar = AppBar(events, 'Sistema de notas')
+        self.route: str | None = kwargs.get('route')
+        self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+        self.vertical_alignment = ft.MainAxisAlignment.CENTER
+        self.padding = 0
+
+        self.controls = [
+            ft.Container(
+                content=ft.DataTable(columns=[ft.DataColumn(ft.Text(''))])
+            ),
+        ]
+
+
+class AppBar(ft.AppBar):
+    """Appbar component."""
+
+    def __init__(self, events: ft.ControlEvent, titulo: str = ''):
+        """Init for Appbar class."""
+        super().__init__()
+        self.events = events
+        self.title = ft.Text(titulo, selectable=True)
+        self.center_title = True
+
+        self.alert = ft.AlertDialog(
+            title='Não há dados para visualizar.',
+        )
+
+        self.leading = ft.Icon(ft.icons.MENU_BOOK)
+
+        self.actions = [
+            ft.PopupMenuButton(
+                visible=True,
+                icon=ft.icons.MENU,
+                items=[
+                    ft.PopupMenuItem(
+                        text='Formulário',
+                        on_click=lambda _: events.page.go('/'),
+                    ),
+                    ft.PopupMenuItem(
+                        text='Visualizar notas',
+                        on_click=lambda _: events.page.go('/notas'),
+                    ),
+                ],
+            ),
+        ]

@@ -3,7 +3,7 @@
 import logging
 
 import flet as ft
-from academic.project.model.components import FormAluno
+from academic.project.model.components import FormAluno, TableView
 
 
 def main_view(e: ft.ControlEvent) -> ft.Control:
@@ -15,9 +15,7 @@ def main_view(e: ft.ControlEvent) -> ft.Control:
 def visualizar_view(e: ft.ControlEvent) -> ft.ControlEvent:
     """Visualizar view."""
     logging.debug(e)
-    return ft.View(
-        route='/visualizar',
-    )
+    return TableView(e, route='/notas')
 
 
 def not_found_view(e: ft.ControlEvent) -> ft.Control:
