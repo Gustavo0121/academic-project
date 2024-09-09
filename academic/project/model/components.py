@@ -1,6 +1,7 @@
 """Componentes."""
 
 import logging
+from typing import NoReturn
 
 import flet as ft
 from academic.project import list_alunos
@@ -11,6 +12,7 @@ class FormAluno(ft.View):
     """Classe dos formulários de aluno."""
 
     def __init__(self, events: ft.ControlEvent, **kwargs: str):
+        """Init for FormAluno class."""
         super().__init__()
         self.events = events
         self.route: str | None = kwargs.get('route')
@@ -43,16 +45,20 @@ class FormAluno(ft.View):
         )
         self.controls[0].content.controls.append(self.btn_linha)
 
-    def add_nota(self, event: ft.ControlEvent):
+    def add_nota(self, event: ft.ControlEvent) -> NoReturn:
         """Adiciona campo de nota no formulário."""
         self.controls[0].content.controls.insert(
-            -1, ft.TextField(label='Nota')
+            -1,
+            ft.TextField(label='Nota'),
         )
         event.page.update()
 
-    def confirm(self, event: ft.ControlEvent):
+    def confirm(self, event: ft.ControlEvent) -> NoReturn:
         """Confirmar."""
-        notas_alunos = [float(nota.value) for nota in self.controls[0].content.controls[2:-1]]
+        notas_alunos = [
+            float(nota.value)
+            for nota in self.controls[0].content.controls[2:-1]
+        ]
         result = Aluno(
             nome=self.name.value,
             turma=self.turma.value,

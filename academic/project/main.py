@@ -3,8 +3,8 @@
 import logging
 import os
 
-from academic.project.views.router import route_change, view_pop
 import flet as ft
+from academic.project.views.router import route_change, view_pop
 
 if os.getenv('DEBUG_MODE'):
     logging.basicConfig(level=logging.INFO)
@@ -24,6 +24,7 @@ def main(page: ft.Page) -> None:
     page.on_route_change = route_change
     page.on_view_pop = view_pop
     page.go(page.route)
+
 
 def app():
     """Run app."""
