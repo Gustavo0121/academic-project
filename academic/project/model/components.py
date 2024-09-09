@@ -85,9 +85,18 @@ class TableView(ft.View):
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.padding = 0
 
+        self.tabela = ft.DataTable(columns=[ft.DataColumn(ft.Text(''))])
+
+        self.msg = ft.Text(
+            value='Sem dados para exibir.',
+            color=ft.colors.RED_800,
+            weight=ft.FontWeight.BOLD,
+            size=40,
+        )
+
         self.controls = [
             ft.Container(
-                content=ft.DataTable(columns=[ft.DataColumn(ft.Text(''))])
+                content = self.tabela if list_alunos else self.msg,
             ),
         ]
 
