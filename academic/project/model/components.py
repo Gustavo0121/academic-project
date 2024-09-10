@@ -88,6 +88,10 @@ class TableView(ft.View):
         self.tabela = ft.DataTable(
             columns=[
                 ft.DataColumn(
+                    ft.Text(''),
+                    numeric=True,
+                ),
+                ft.DataColumn(
                     ft.Text('Nome'),
                 ),
                 ft.DataColumn(
@@ -100,7 +104,11 @@ class TableView(ft.View):
                     ft.Text('Status'),
                 ),
             ],
+            rows=[],
         )
+        for idx in range(len(list_alunos)):
+            line = self.create_row(idx)
+            self.tabela.rows.append(line)
 
         self.msg = ft.Text(
             value='Sem dados para exibir.',
@@ -114,6 +122,20 @@ class TableView(ft.View):
                 content=self.tabela if list_alunos else self.msg,
             ),
         ]
+
+    def create_row(self, idx: int) -> ft.DataRow:
+        """Add row."""
+        item = list_alunos[idx]
+        return ft.DataRow(
+            data=idx,
+            cells=[
+                ft.DataCell(ft.Text(str(idx + 1))),
+                ft.DataCell(ft.Text(f'{item.nome}')),
+                ft.DataCell(ft.Text(f'{item.turma}')),
+                ft.DataCell(ft.Text(''.join(str(item.notas)))),
+                ft.DataCell(ft.Text('Aprovado')),
+            ],
+        )
 
 
 class AppBar(ft.AppBar):
