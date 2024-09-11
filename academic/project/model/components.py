@@ -29,6 +29,9 @@ class FormAluno(ft.View):
             ),
         ]
 
+        self.media = ft.TextField(label='Média', value=6.0)
+        self.controls[0].content.controls.append(self.media)
+
         self.name = ft.TextField(label='Nome do aluno')
         self.controls[0].content.controls.append(self.name)
 
@@ -58,16 +61,17 @@ class FormAluno(ft.View):
         """Confirmar."""
         notas_alunos = [
             float(nota.value)
-            for nota in self.controls[0].content.controls[2:-1]
+            for nota in self.controls[0].content.controls[3:-1]
         ]
         result = Aluno(
             nome=self.name.value,
             turma=self.turma.value,
+            media=float(self.media.value),
             notas=notas_alunos,
         )
         list_alunos.append(result)
         logging.info(result)
-        for campos in self.controls[0].content.controls:
+        for campos in self.controls[0].content.controls[1:]:
             campos.value = ''
         event.page.update()
 
@@ -133,7 +137,7 @@ class TableView(ft.View):
                 ft.DataCell(ft.Text(f'{item.nome}')),
                 ft.DataCell(ft.Text(f'{item.turma}')),
                 ft.DataCell(ft.Text(''.join(str(item.notas)))),
-                ft.DataCell(ft.Text('Aprovado')),
+                ft.DataCell(ft.Text('Aprovado' if sum(item.notas) / len(item.notas) >= float(item.media) else 'Reprovado')),
             ],
         )
 
