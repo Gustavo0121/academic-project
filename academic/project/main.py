@@ -23,7 +23,7 @@ def main(page: ft.Page) -> None:
 
     page.on_route_change = route_change
     page.on_view_pop = view_pop
-    page.go(page.route)
+    page.go('/login')
 
 
 def app():

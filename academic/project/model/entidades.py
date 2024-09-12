@@ -11,3 +11,10 @@ class Aluno:
     turma: str
     media: float
     notas: list[float]
+
+@dataclass
+class User:
+    """Classe modelo para usuário."""
+
+    matricula: int
+    senha: str
