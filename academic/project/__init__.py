@@ -12,6 +12,8 @@ versionfile = Path(__file__).parent / 'version.txt'
 
 list_alunos: list[Aluno] = []
 
+DB = Path(__file__).parent.joinpath('model', 'sistema_notas.db')
+
 
 if __name__ == '__main__':  # pragma: no cover
     logging.info('(%s)', __title__)
