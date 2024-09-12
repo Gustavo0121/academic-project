@@ -9,4 +9,5 @@ class Aluno:
 
     nome: str
     turma: str
+    media: float
     notas: list[float]

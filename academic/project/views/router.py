@@ -8,6 +8,7 @@ from academic.project.views import pages
 
 routes = {
     '/': pages.main_view,
+    '/notas': pages.visualizar_view,
     '/notfound': pages.not_found_view,
 }
 
