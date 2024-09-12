@@ -3,7 +3,7 @@
 import logging
 
 import flet as ft
-from academic.project.model.components import FormAluno, TableView, Login
+from academic.project.controllers.components import FormAluno, TableView, Login
 
 
 def login_view(e: ft.ControlEvent) -> ft.Control:

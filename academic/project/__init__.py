@@ -3,7 +3,7 @@
 import logging
 from pathlib import Path
 
-from academic.project.model.entidades import Aluno
+from academic.project.controllers.entidades import Aluno
 
 __title__ = '.'.join(Path(__file__).parent.parts[-2:])
 
