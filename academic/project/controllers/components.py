@@ -5,7 +5,7 @@ from typing import NoReturn
 
 import flet as ft
 from academic.project import list_alunos
-from academic.project.model.entidades import Aluno, User
+from academic.project.controllers.entidades import Aluno, User
 
 class Login(ft.View):
     """Classe para tela de login."""
