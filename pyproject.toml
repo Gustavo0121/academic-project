@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "academic-project"
-version = "0.2.0"
+version = "0.3.0"
 description = "Projeto acadêmico para matéria de Desenvolvimento rápido em Python"
 authors = ["Your Name <you@example.com>"]
 license = "Unlicense"

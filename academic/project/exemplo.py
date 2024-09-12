@@ -59,6 +59,7 @@ def salvar_lista():
     with Path('lista_de_tarefas.txt').open('w') as arquivo:
         for tarefa in tarefas:
             arquivo.write(tarefa + '\n')
+    lista_tarefas.delete(0, tk.END)
 
 
 # Função para carregar a lista de tarefas de um arquivo de texto
