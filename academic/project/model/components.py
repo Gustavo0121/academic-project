@@ -5,7 +5,45 @@ from typing import NoReturn
 
 import flet as ft
 from academic.project import list_alunos
-from academic.project.model.entidades import Aluno
+from academic.project.model.entidades import Aluno, User
+
+class Login(ft.View):
+    """Classe para tela de login."""
+
+    def __init__(self, events: ft.ControlEvent, **kwargs: str):
+        """Init for Login class."""
+        super().__init__()
+        self.events = events
+        self.route: str | None = kwargs.get('route')
+        self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+        self.vertical_alignment = ft.MainAxisAlignment.CENTER
+        self.padding = 0
+
+        self.controls = [
+            ft.Container(
+                content=ft.Column(
+                    controls=[],
+                ),
+            ),
+        ]
+
+        self.matricula = ft.TextField(label='Matrícula')
+        self.controls[0].content.controls.append(self.matricula)
+
+        self.senha = ft.TextField(label='Senha', password=True, can_reveal_password=True)
+        self.controls[0].content.controls.append(self.senha)
+
+        self.entrar = ft.TextButton('Entrar', on_click=self.to_enter)
+        self.controls[0].content.controls.append(self.entrar)
+
+    def to_enter(self, event: ft.ControlEvent) -> NoReturn:
+        """To enter."""
+        result = User(
+            matricula=self.matricula.value,
+            senha=self.senha.value,
+        )
+        logging.debug(result)
+        event.page.go('/')
 
 
 class FormAluno(ft.View):
@@ -174,3 +212,5 @@ class AppBar(ft.AppBar):
                 ],
             ),
         ]
+
+
