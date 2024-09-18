@@ -6,6 +6,7 @@ from typing import NoReturn
 import flet as ft
 from academic.project import list_alunos
 from academic.project.controllers.entidades import Aluno, User
+from academic.project.model.db import execute, query
 
 class Login(ft.View):
     """Classe para tela de login."""
@@ -24,6 +25,7 @@ class Login(ft.View):
                 content=ft.Column(
                     controls=[],
                 ),
+                width=500,
             ),
         ]
 
@@ -43,7 +45,9 @@ class Login(ft.View):
             senha=self.senha.value,
         )
         logging.debug(result)
-        event.page.go('/')
+        users = query("SELECT * from users")
+        if (int(result.matricula), str(result.senha)) in users:
+            event.page.go('/')
 
 
 class FormAluno(ft.View):
