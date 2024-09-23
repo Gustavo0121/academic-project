@@ -12,6 +12,7 @@ class Aluno:
     media: float
     notas: list[float]
 
+
 @dataclass
 class User:
     """Classe modelo para usuário."""

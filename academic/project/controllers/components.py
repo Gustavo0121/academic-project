@@ -6,6 +6,10 @@ from typing import NoReturn
 import flet as ft
 from academic.project import list_alunos
 from academic.project.controllers.entidades import Aluno, User
+from academic.project.model.db import query
+
+users = query('SELECT * from users')
+
 
 class Login(ft.View):
     """Classe para tela de login."""
@@ -19,22 +23,89 @@ class Login(ft.View):
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.padding = 0
 
+        self.not_user = ft.Text(
+            'Usuário ou senha incorretos',
+            color='red',
+            size=20,
+        )
+        self.btn_email = ft.TextButton(
+            'Entrar com e-mail de estudante',
+            icon=ft.icons.EMAIL,
+            width=320,
+            height=50,
+            style=ft.ButtonStyle(
+                color='#ffffff',
+                bgcolor='#0072C6',
+                shape=ft.RoundedRectangleBorder(radius=3),
+            ),
+        )
+        self.matricula = ft.TextField(
+            label='Matrícula',
+            suffix_icon=ft.icons.PERM_IDENTITY,
+        )
+        self.senha = ft.TextField(
+            label='Senha',
+            password=True,
+            can_reveal_password=True,
+        )
+        self.captcha = ft.Checkbox(
+            'Não sou um robô',
+            shape=ft.RoundedRectangleBorder(radius=3),
+            width=250,
+            height=60,
+            on_change=self.enter_validation,
+        )
+        self.entrar = ft.TextButton(
+            'Entrar',
+            disabled=True,
+            on_click=self.to_enter,
+            on_hover=self.hover_enter,
+            width=320,
+            height=50,
+            style=ft.ButtonStyle(
+                color='#ffffff',
+                bgcolor='#8c8c8c',
+                shape=ft.RoundedRectangleBorder(radius=3),
+            ),
+        )
+
         self.controls = [
             ft.Container(
                 content=ft.Column(
-                    controls=[],
+                    controls=[
+                        ft.Container(
+                            content=ft.Text(
+                                'SGA - Sistema de Gerenciamento Acadêmico',
+                            ),
+                            padding=ft.padding.only(bottom=85, top=20),
+                        ),
+                        self.btn_email,
+                        ft.Text('---------- ou ----------'),
+                        self.matricula,
+                        self.senha,
+                        ft.Container(
+                            content=ft.Row(
+                                controls=[
+                                    self.captcha,
+                                    ft.Icon(ft.icons.RECYCLING),
+                                ],
+                            ),
+                            bgcolor='#ebedeb',
+                            border=ft.border.all(1, '#0a0a0a'),
+                        ),
+                        ft.Container(
+                            content=self.entrar,
+                            padding=ft.padding.only(top=65),
+                        ),
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=20,
                 ),
+                width=350,
+                height=events.page.window.height - 50,
+                padding=30,
             ),
         ]
-
-        self.matricula = ft.TextField(label='Matrícula')
-        self.controls[0].content.controls.append(self.matricula)
-
-        self.senha = ft.TextField(label='Senha', password=True, can_reveal_password=True)
-        self.controls[0].content.controls.append(self.senha)
-
-        self.entrar = ft.TextButton('Entrar', on_click=self.to_enter)
-        self.controls[0].content.controls.append(self.entrar)
 
     def to_enter(self, event: ft.ControlEvent) -> NoReturn:
         """To enter."""
@@ -43,7 +114,29 @@ class Login(ft.View):
             senha=self.senha.value,
         )
         logging.debug(result)
-        event.page.go('/')
+        if (int(result.matricula), str(result.senha)) in users:
+            event.page.go('/')
+        else:
+            self.controls[0].content.controls.append(self.not_user)
+
+    def hover_enter(self, event: ft.ControlEvent) -> NoReturn:
+        """On hover enter button."""
+        self.entrar.style.bgcolor = (
+            '#1d7d1d'
+            if event.data == 'true'
+            else ft.colors.with_opacity(0.7, '#1d7d1d')
+        )
+        event.page.update()
+
+    def enter_validation(self, event: ft.ControlEvent) -> NoReturn:
+        """Validation for button enter disabled or not."""
+        self.entrar.style.bgcolor = (
+            ft.colors.with_opacity(0.7, '#1d7d1d')
+            if self.captcha.value
+            else '#8c8c8c'
+        )
+        self.entrar.disabled = not self.captcha.value
+        event.page.update()
 
 
 class FormAluno(ft.View):
@@ -175,7 +268,14 @@ class TableView(ft.View):
                 ft.DataCell(ft.Text(f'{item.nome}')),
                 ft.DataCell(ft.Text(f'{item.turma}')),
                 ft.DataCell(ft.Text(''.join(str(item.notas)))),
-                ft.DataCell(ft.Text('Aprovado' if sum(item.notas) / len(item.notas) >= float(item.media) else 'Reprovado')),
+                ft.DataCell(
+                    ft.Text(
+                        'Aprovado'
+                        if sum(item.notas) / len(item.notas)
+                        >= float(item.media)
+                        else 'Reprovado',
+                    ),
+                ),
             ],
         )
 
@@ -212,5 +312,3 @@ class AppBar(ft.AppBar):
                 ],
             ),
         ]
-
-
