@@ -3,13 +3,14 @@
 import logging
 
 import flet as ft
-from academic.project.controllers.components import FormAluno, TableView, Login
+from academic.project.controllers.components import FormAluno, Login, TableView
 
 
 def login_view(e: ft.ControlEvent) -> ft.Control:
     """Login view."""
     logging.debug(e)
     return Login(e, route='/login')
+
 
 def main_view(e: ft.ControlEvent) -> ft.Control:
     """Main view."""
