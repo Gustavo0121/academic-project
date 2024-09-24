@@ -41,6 +41,7 @@ class Login(ft.View):
         )
         self.matricula = ft.TextField(
             label='Matrícula',
+            input_filter=ft.NumbersOnlyInputFilter(),
             suffix_icon=ft.icons.PERM_IDENTITY,
         )
         self.senha = ft.TextField(
@@ -120,6 +121,7 @@ class Login(ft.View):
             event.page.go('/aluno')
         else:
             self.controls[0].content.controls.append(self.not_user)
+            event.page.update()
 
     def hover_enter(self, event: ft.ControlEvent) -> NoReturn:
         """On hover enter button."""
