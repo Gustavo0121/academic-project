@@ -114,8 +114,10 @@ class Login(ft.View):
             senha=self.senha.value,
         )
         logging.debug(result)
-        if (int(result.matricula), str(result.senha)) in users:
+        if (int(result.matricula), str(result.senha), 'professor') in users:
             event.page.go('/')
+        elif (int(result.matricula), str(result.senha), 'aluno') in users:
+            event.page.go('/aluno')
         else:
             self.controls[0].content.controls.append(self.not_user)
 
@@ -138,6 +140,25 @@ class Login(ft.View):
         self.entrar.disabled = not self.captcha.value
         event.page.update()
 
+
+class AlunoView(ft.View):
+    """Classe para visualização dos usuários alunos."""
+    
+    def __init__(self, events: ft.ControlEvent, **kwargs: str):
+        """Init for FormAluno class."""
+        super().__init__()
+        self.events = events
+        self.appbar = AppBar(events, 'Sistema de notas')
+        self.route: str | None = kwargs.get('route')
+        self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+        self.vertical_alignment = ft.MainAxisAlignment.CENTER
+        self.padding = 0
+
+        self.controls = [
+            ft.Container(
+                content=ft.Text('Área do aluno.'),
+            ),
+        ]
 
 class FormAluno(ft.View):
     """Classe dos formulários de aluno."""
@@ -312,3 +333,7 @@ class AppBar(ft.AppBar):
                 ],
             ),
         ]
+
+
+if __name__ == '__main__':
+    print(users)
