@@ -4,7 +4,7 @@ import logging
 from typing import NoReturn
 
 import flet as ft
-from academic.project import list_alunos
+from academic.project import list_alunos, user_active
 from academic.project.controllers.entidades import Aluno, User
 from academic.project.model.db import query
 
@@ -111,16 +111,11 @@ class Login(ft.View):
 
     def to_enter(self, event: ft.ControlEvent) -> NoReturn:
         """To enter."""
-        result = User(
-            matricula=self.matricula.value,
-            senha=self.senha.value,
-        )
-        logging.debug(result)
-
-        prof_valid = (int(result.matricula), str(result.senha), 'professor')
-        aluno_valid = (int(result.matricula), str(result.senha), 'aluno')
+        prof_valid = (int(self.matricula.value), str(self.senha.value), 'professor')
+        aluno_valid = (int(self.matricula.value), str(self.senha.value), 'aluno')
 
         if any(user[:len(prof_valid)] == prof_valid for user in users):
+            user_active.append(User(matricula=users[0], senha=users[1], status=users[2], nome=users[3]))
             event.page.go('/')
         elif any(user[:len(aluno_valid)] == aluno_valid for user in users):
             event.page.go('/notas')

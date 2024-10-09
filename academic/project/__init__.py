@@ -3,7 +3,7 @@
 import logging
 from pathlib import Path
 
-from academic.project.controllers.entidades import Aluno
+from academic.project.controllers.entidades import Aluno, User
 
 __title__ = '.'.join(Path(__file__).parent.parts[-2:])
 
@@ -23,6 +23,7 @@ users = {
         9: ['1001', 'aluno', 'Eric'],
         10: ['1010', 'aluno', 'Kaio'],
     }
+user_active: list[User] = []
 DB = Path(__file__).parent.joinpath('model', 'sistema_notas.db')
 
 
