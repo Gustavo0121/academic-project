@@ -9,6 +9,7 @@ from academic.project.controllers.entidades import Aluno, User
 from academic.project.model.db import query
 
 users = query('SELECT * from users')
+alunos = query("SELECT nome from users WHERE status = 'aluno'")
 
 
 class Login(ft.View):
@@ -160,7 +161,19 @@ class FormAluno(ft.View):
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.padding = 0
 
+        self.materia = ft.Dropdown(
+            label='Matéria',
+            options=[
+                ft.dropdown.Option('Aplic. de Cloud, Iot e Indústria 4.0 em Python'),
+                ft.dropdown.Option('Programação Orientada a Objetos em Java'),
+                ft.dropdown.Option('Desenvolvimento Rápido de Aplicações em Python'),
+                ft.dropdown.Option('Programação de Microcontroladores'),
+            ],
+            width=700,
+        )
+
         self.controls = [
+            self.materia,
             ft.Container(
                 content=ft.Column(
                     controls=[],
@@ -169,14 +182,19 @@ class FormAluno(ft.View):
             ),
         ]
 
-        self.name = ft.TextField(label='Nome do aluno')
-        self.controls[0].content.controls.append(self.name)
+        self.name = ft.Dropdown(
+            label='Nome do aluno',
+            options=[
+                ft.dropdown.Option(*aluno) for aluno in alunos
+            ],
+        )
+        self.controls[1].content.controls.append(self.name)
 
-        self.turma = ft.TextField(label='Turma')
-        self.controls[0].content.controls.append(self.turma)
+        self.nota_av = ft.TextField(label='Nota AV')
+        self.controls[1].content.controls.append(self.nota_av)
 
-        self.nota = ft.TextField(label='Nota')
-        self.controls[0].content.controls.append(self.nota)
+        self.nota_trabalho = ft.TextField(label='Nota Trabalho')
+        self.controls[1].content.controls.append(self.nota_trabalho)
 
         self.btn_linha = ft.Row(
             controls=[
@@ -184,11 +202,11 @@ class FormAluno(ft.View):
                 ft.TextButton('Confirmar', on_click=self.confirm),
             ],
         )
-        self.controls[0].content.controls.append(self.btn_linha)
+        self.controls[1].content.controls.append(self.btn_linha)
 
     def add_nota(self, event: ft.ControlEvent) -> NoReturn:
         """Adiciona campo de nota no formulário."""
-        self.controls[0].content.controls.insert(
+        self.controls[1].content.controls.insert(
             -1,
             ft.TextField(label='Nota'),
         )
@@ -198,17 +216,16 @@ class FormAluno(ft.View):
         """Confirmar."""
         notas_alunos = [
             float(nota.value)
-            for nota in self.controls[0].content.controls[3:-1]
+            for nota in self.controls[1].content.controls[1:-1]
         ]
         result = Aluno(
             nome=self.name.value,
-            turma=self.turma.value,
-            media=float(self.media.value),
+            turma=self.materia.value,
             notas=notas_alunos,
         )
         list_alunos.append(result)
         logging.info(result)
-        for campos in self.controls[0].content.controls[1:]:
+        for campos in self.controls[1].content.controls:
             campos.value = ''
         event.page.update()
 
@@ -278,7 +295,7 @@ class TableView(ft.View):
                     ft.Text(
                         'Aprovado'
                         if sum(item.notas) / len(item.notas)
-                        >= float(item.media)
+                        >= 6
                         else 'Reprovado',
                     ),
                 ),
