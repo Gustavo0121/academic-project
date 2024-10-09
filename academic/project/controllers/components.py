@@ -118,7 +118,7 @@ class Login(ft.View):
         if (int(result.matricula), str(result.senha), 'professor') in users:
             event.page.go('/')
         elif (int(result.matricula), str(result.senha), 'aluno') in users:
-            event.page.go('/aluno')
+            event.page.go('/notas')
         else:
             self.controls[0].content.controls.append(self.not_user)
             event.page.update()
@@ -331,6 +331,10 @@ class AppBar(ft.AppBar):
                     ft.PopupMenuItem(
                         text='Visualizar notas',
                         on_click=lambda _: events.page.go('/notas'),
+                    ),
+                    ft.PopupMenuItem(
+                        text='Logoff',
+                        on_click=lambda _: events.page.go('/login'),
                     ),
                 ],
             ),

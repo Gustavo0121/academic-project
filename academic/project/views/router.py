@@ -11,7 +11,6 @@ routes = {
     '/notas': pages.visualizar_view,
     '/notfound': pages.not_found_view,
     '/login': pages.login_view,
-    '/aluno': pages.aluno_main_view,
 }
 
 
