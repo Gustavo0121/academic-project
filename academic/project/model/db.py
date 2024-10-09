@@ -2,7 +2,7 @@
 
 import sqlite3
 
-from academic.project import DB
+from academic.project import DB, users
 
 
 def execute(comandos: list[str]) -> bool:
@@ -42,6 +42,12 @@ if not DB.is_file():
         """CREATE TABLE
         aluno(matricula integer not null, senha text not null)""",
     ])
+    for user in users.items():
+        execute(
+            [
+                f"""INSERT INTO users VALUES({user[0]}, '{user[1][0]}', '{user[1][1]}')""",
+            ],
+        )
 
 if __name__ == '__main__':
-    query("""SELECT * from users""")
+    query('SELECT * from users')
