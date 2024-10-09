@@ -115,9 +115,13 @@ class Login(ft.View):
             senha=self.senha.value,
         )
         logging.debug(result)
-        if (int(result.matricula), str(result.senha), 'professor') in users:
+
+        prof_valid = (int(result.matricula), str(result.senha), 'professor')
+        aluno_valid = (int(result.matricula), str(result.senha), 'aluno')
+
+        if any(user[:len(prof_valid)] == prof_valid for user in users):
             event.page.go('/')
-        elif (int(result.matricula), str(result.senha), 'aluno') in users:
+        elif any(user[:len(aluno_valid)] == aluno_valid for user in users):
             event.page.go('/notas')
         else:
             self.controls[0].content.controls.append(self.not_user)
@@ -143,25 +147,6 @@ class Login(ft.View):
         event.page.update()
 
 
-class AlunoView(ft.View):
-    """Classe para visualização dos usuários alunos."""
-    
-    def __init__(self, events: ft.ControlEvent, **kwargs: str):
-        """Init for FormAluno class."""
-        super().__init__()
-        self.events = events
-        self.appbar = AppBar(events, 'Sistema de notas')
-        self.route: str | None = kwargs.get('route')
-        self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-        self.vertical_alignment = ft.MainAxisAlignment.CENTER
-        self.padding = 0
-
-        self.controls = [
-            ft.Container(
-                content=ft.Text('Área do aluno.'),
-            ),
-        ]
-
 class FormAluno(ft.View):
     """Classe dos formulários de aluno."""
 
@@ -180,11 +165,9 @@ class FormAluno(ft.View):
                 content=ft.Column(
                     controls=[],
                 ),
+                width=700,
             ),
         ]
-
-        self.media = ft.TextField(label='Média', value=6.0)
-        self.controls[0].content.controls.append(self.media)
 
         self.name = ft.TextField(label='Nome do aluno')
         self.controls[0].content.controls.append(self.name)
