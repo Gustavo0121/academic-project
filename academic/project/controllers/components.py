@@ -290,10 +290,39 @@ class TableView(ft.View):
             ],
             rows=[],
         )
+
+        self.tabela_prof = ft.DataTable(
+            columns=[
+                ft.DataColumn(
+                    ft.Text(''),
+                    numeric=True,
+                ),
+                ft.DataColumn(
+                    ft.Text('Nome'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Turma'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Nota AV'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Nota Trabalho'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Status'),
+                ),
+                ft.DataColumn(ft.Text('')),
+            ],
+            rows=[],
+        )
+
         for idx in range(len(self.notas)):
-            line = self.create_row(idx)
-            if line:
+            line = self.create_row(idx, )
+            if line and user_active[-1].status == 'aluno':
                 self.tabela.rows.append(line)
+            elif line and user_active[-1].status == 'professor':
+                self.tabela_prof.rows.append(line)
 
         self.msg = ft.Text(
             value='Sem dados para exibir.',
@@ -304,14 +333,14 @@ class TableView(ft.View):
 
         self.controls = [
             ft.Container(
-                content=self.tabela if self.notas else self.msg,
+                content=self.tabela if user_active[-1].status == 'aluno' else self.tabela_prof,
             ),
         ]
 
     def create_row(self, idx: int) -> ft.DataRow:
         """Add row."""
         item = self.notas[idx]
-        if item[0] == user_active[-1].nome or user_active[-1].status == 'professor':
+        if item[0] == user_active[-1].nome:
             return ft.DataRow(
                 data=idx,
                 cells=[
@@ -327,7 +356,28 @@ class TableView(ft.View):
                     ),
                 ],
             )
-
+        elif user_active[-1].status == 'professor':
+            return ft.DataRow(
+                data=idx,
+                cells=[
+                    ft.DataCell(ft.Text(str(idx + 1))),
+                    ft.DataCell(ft.Text(f'{item[0]}')),
+                    ft.DataCell(ft.Text(f'{item[1]}')),
+                    ft.DataCell(ft.Text(f'{item[2]}')),
+                    ft.DataCell(ft.Text(f'{item[3]}')),
+                    ft.DataCell(
+                        ft.Text(
+                            'Aprovado' if bool(item[4]) else 'Reprovado',
+                        ),
+                    ),
+                    ft.DataCell(
+                        ft.IconButton(
+                            ft.icons.EDIT_DOCUMENT,
+                            data=idx,
+                        ),
+                    ),
+                ],
+            )
 
 class AppBar(ft.AppBar):
     """Appbar component."""
