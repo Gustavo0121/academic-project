@@ -4,7 +4,7 @@ import logging
 from typing import NoReturn
 
 import flet as ft
-from academic.project import list_alunos, user_active
+from academic.project import list_alunos, media, user_active
 from academic.project.controllers.entidades import Aluno, User
 from academic.project.model.db import query
 
@@ -111,15 +111,33 @@ class Login(ft.View):
 
     def to_enter(self, event: ft.ControlEvent) -> NoReturn:
         """To enter."""
-        prof_valid = (int(self.matricula.value), str(self.senha.value), 'professor')
-        aluno_valid = (int(self.matricula.value), str(self.senha.value), 'aluno')
+        prof_valid = (
+            int(self.matricula.value),
+            str(self.senha.value),
+            'professor',
+        )
+        aluno_valid = (
+            int(self.matricula.value),
+            str(self.senha.value),
+            'aluno',
+        )
 
-        if any(user[:len(prof_valid)] == prof_valid for user in users):
-            user_act = query(f"SELECT * from users WHERE matricula == {self.matricula.value} and senha == '{self.senha.value}'")
-            user_active.append(User(matricula=user_act[0][0], senha=user_act[0][1], status=user_act[0][2], nome=user_act[0][3]))
-            print(users)
+        if any(user[: len(prof_valid)] == prof_valid for user in users):
+            user_act = query(
+                'SELECT * from users WHERE matricula == '
+                f"{self.matricula.value} and senha == '{self.senha.value}'",
+            )
+            user_active.append(
+                User(
+                    matricula=user_act[0][0],
+                    senha=user_act[0][1],
+                    status=user_act[0][2],
+                    nome=user_act[0][3],
+                ),
+            )
+            logging.info(users)
             event.page.go('/')
-        elif any(user[:len(aluno_valid)] == aluno_valid for user in users):
+        elif any(user[: len(aluno_valid)] == aluno_valid for user in users):
             event.page.go('/notas')
         else:
             self.controls[0].content.controls.append(self.not_user)
@@ -161,9 +179,13 @@ class FormAluno(ft.View):
         self.materia = ft.Dropdown(
             label='Matéria',
             options=[
-                ft.dropdown.Option('Aplic. de Cloud, Iot e Indústria 4.0 em Python'),
+                ft.dropdown.Option(
+                    'Aplic. de Cloud, Iot e Indústria 4.0 em Python',
+                ),
                 ft.dropdown.Option('Programação Orientada a Objetos em Java'),
-                ft.dropdown.Option('Desenvolvimento Rápido de Aplicações em Python'),
+                ft.dropdown.Option(
+                    'Desenvolvimento Rápido de Aplicações em Python',
+                ),
                 ft.dropdown.Option('Programação de Microcontroladores'),
             ],
             width=700,
@@ -181,9 +203,7 @@ class FormAluno(ft.View):
 
         self.name = ft.Dropdown(
             label='Nome do aluno',
-            options=[
-                ft.dropdown.Option(*aluno) for aluno in alunos
-            ],
+            options=[ft.dropdown.Option(*aluno) for aluno in alunos],
         )
         self.controls[1].content.controls.append(self.name)
 
@@ -291,8 +311,7 @@ class TableView(ft.View):
                 ft.DataCell(
                     ft.Text(
                         'Aprovado'
-                        if sum(item.notas) / len(item.notas)
-                        >= 6
+                        if sum(item.notas) / len(item.notas) >= media
                         else 'Reprovado',
                     ),
                 ),
@@ -339,4 +358,4 @@ class AppBar(ft.AppBar):
 
 
 if __name__ == '__main__':
-    print(users)
+    logging.info(users)
