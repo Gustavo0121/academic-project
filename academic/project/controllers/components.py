@@ -10,7 +10,6 @@ from academic.project.model.db import query, execute
 
 users = query('SELECT * from users')
 alunos = query("SELECT nome from users WHERE status = 'aluno'")
-notas = query('SELECT * from notas')
 
 class Login(ft.View):
     """Classe para tela de login."""
@@ -236,7 +235,8 @@ class FormAluno(ft.View):
         """Confirmar."""
         execute(
             [
-                f"""INSERT INTO notas VALUES('{self.name.value}', '{self.turma.value}', {self.nota_av.value}, {self.nota_trabalho.value}, {1 if (float(self.nota_av.value) + float(self.nota_trabalho.value)) / 2 > MEDIA else 0})""",
+                f"""INSERT INTO notas VALUES
+                ('{self.name.value}', '{self.turma.value}', {self.nota_av.value}, {self.nota_trabalho.value}, {1 if (float(self.nota_av.value) + float(self.nota_trabalho.value)) / 2 > MEDIA else 0})""",
             ],
         )
         result = Aluno(
@@ -264,6 +264,7 @@ class TableView(ft.View):
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.padding = 0
+        self.notas = query('SELECT * from notas')
 
         self.tabela = ft.DataTable(
             columns=[
@@ -278,7 +279,10 @@ class TableView(ft.View):
                     ft.Text('Turma'),
                 ),
                 ft.DataColumn(
-                    ft.Text('Notas'),
+                    ft.Text('Nota AV'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Nota Trabalho'),
                 ),
                 ft.DataColumn(
                     ft.Text('Status'),
@@ -286,7 +290,7 @@ class TableView(ft.View):
             ],
             rows=[],
         )
-        for idx in range(len(list_alunos)):
+        for idx in range(len(self.notas)):
             line = self.create_row(idx)
             if line:
                 self.tabela.rows.append(line)
@@ -300,26 +304,25 @@ class TableView(ft.View):
 
         self.controls = [
             ft.Container(
-                content=self.tabela if list_alunos else self.msg,
+                content=self.tabela if self.notas else self.msg,
             ),
         ]
 
     def create_row(self, idx: int) -> ft.DataRow:
         """Add row."""
-        item = list_alunos[idx]
-        if item.nome == user_active[-1].nome or user_active[-1].status == 'professor':
+        item = self.notas[idx]
+        if item[0] == user_active[-1].nome or user_active[-1].status == 'professor':
             return ft.DataRow(
                 data=idx,
                 cells=[
                     ft.DataCell(ft.Text(str(idx + 1))),
-                    ft.DataCell(ft.Text(f'{item.nome}')),
-                    ft.DataCell(ft.Text(f'{item.turma}')),
-                    ft.DataCell(ft.Text(''.join(str(item.notas)))),
+                    ft.DataCell(ft.Text(f'{item[0]}')),
+                    ft.DataCell(ft.Text(f'{item[1]}')),
+                    ft.DataCell(ft.Text(f'{item[2]}')),
+                    ft.DataCell(ft.Text(f'{item[3]}')),
                     ft.DataCell(
                         ft.Text(
-                            'Aprovado'
-                            if sum(item.notas) / len(item.notas) >= MEDIA
-                            else 'Reprovado',
+                            'Aprovado' if bool(item[4]) else 'Reprovado',
                         ),
                     ),
                 ],
