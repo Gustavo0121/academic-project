@@ -115,7 +115,9 @@ class Login(ft.View):
         aluno_valid = (int(self.matricula.value), str(self.senha.value), 'aluno')
 
         if any(user[:len(prof_valid)] == prof_valid for user in users):
-            user_active.append(User(matricula=users[0], senha=users[1], status=users[2], nome=users[3]))
+            user_act = query(f"SELECT * from users WHERE matricula == {self.matricula.value} and senha == '{self.senha.value}'")
+            user_active.append(User(matricula=user_act[0][0], senha=user_act[0][1], status=user_act[0][2], nome=user_act[0][3]))
+            print(users)
             event.page.go('/')
         elif any(user[:len(aluno_valid)] == aluno_valid for user in users):
             event.page.go('/notas')
