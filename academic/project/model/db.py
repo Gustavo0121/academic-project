@@ -40,13 +40,18 @@ if not DB.is_file():
         matricula integer not null,
         senha text not null,
         status text not null,
-        nome text not null
-        )""",
+        nome text not null)""",
         """CREATE TABLE
-        professor(matricula integer not null, senha text not null)""",
-        """CREATE TABLE
-        aluno(matricula integer not null, senha text not null)""",
+        notas(
+        nome text not null,
+        turma text not null,
+        nota_av integer not null,
+        nota_trabalho integer not null,
+        status numeric not null)
+"""
     ])
+
+if __name__ == '__main__':
     for user in users.items():
         execute(
             [
@@ -54,6 +59,3 @@ if not DB.is_file():
                 ({user[0]}, '{user[1][0]}', '{user[1][1]}', '{user[1][2]}')""",
             ],
         )
-
-if __name__ == '__main__':
-    query('SELECT * from users')

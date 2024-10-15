@@ -6,11 +6,11 @@ from typing import NoReturn
 import flet as ft
 from academic.project import list_alunos, MEDIA, user_active
 from academic.project.controllers.entidades import Aluno, User
-from academic.project.model.db import query
+from academic.project.model.db import query, execute
 
 users = query('SELECT * from users')
 alunos = query("SELECT nome from users WHERE status = 'aluno'")
-
+notas = query('SELECT * from notas')
 
 class Login(ft.View):
     """Classe para tela de login."""
@@ -191,7 +191,7 @@ class FormAluno(ft.View):
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.padding = 0
 
-        self.materia = ft.Dropdown(
+        self.turma = ft.Dropdown(
             label='Matéria',
             options=[
                 ft.dropdown.Option(
@@ -207,7 +207,7 @@ class FormAluno(ft.View):
         )
 
         self.controls = [
-            self.materia,
+            self.turma,
             ft.Container(
                 content=ft.Column(
                     controls=[],
@@ -228,32 +228,21 @@ class FormAluno(ft.View):
         self.nota_trabalho = ft.TextField(label='Nota Trabalho')
         self.controls[1].content.controls.append(self.nota_trabalho)
 
-        self.btn_linha = ft.Row(
-            controls=[
-                ft.TextButton('Adicionar nota', on_click=self.add_nota),
-                ft.TextButton('Confirmar', on_click=self.confirm),
-            ],
-        )
-        self.controls[1].content.controls.append(self.btn_linha)
+        self.btn_confirm = ft.TextButton('Confirmar', on_click=self.confirm)
+        self.controls[1].content.controls.append(self.btn_confirm)
 
-    def add_nota(self, event: ft.ControlEvent) -> NoReturn:
-        """Adiciona campo de nota no formulário."""
-        self.controls[1].content.controls.insert(
-            -1,
-            ft.TextField(label='Nota'),
-        )
-        event.page.update()
 
     def confirm(self, event: ft.ControlEvent) -> NoReturn:
         """Confirmar."""
-        notas_alunos = [
-            float(nota.value)
-            for nota in self.controls[1].content.controls[1:-1]
-        ]
+        execute(
+            [
+                f"""INSERT INTO notas VALUES('{self.name.value}', '{self.turma.value}', {self.nota_av.value}, {self.nota_trabalho.value}, {1 if (float(self.nota_av.value) + float(self.nota_trabalho.value)) / 2 > MEDIA else 0})""",
+            ],
+        )
         result = Aluno(
             nome=self.name.value,
-            turma=self.materia.value,
-            notas=notas_alunos,
+            turma=self.turma.value,
+            notas=[self.nota_av.value, self.nota_trabalho.value],
         )
         list_alunos.append(result)
         logging.info(result)
