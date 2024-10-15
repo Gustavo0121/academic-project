@@ -9,7 +9,6 @@ class Aluno:
 
     nome: str
     turma: str
-    media: float
     notas: list[float]
 
 
@@ -19,3 +18,5 @@ class User:
 
     matricula: int
     senha: str
+    status: str
+    nome: str

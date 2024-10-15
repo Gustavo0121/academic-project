@@ -4,6 +4,7 @@ import logging
 from typing import NoReturn
 
 import flet as ft
+from academic.project import user_active
 from academic.project.views import pages
 
 routes = {
@@ -27,4 +28,5 @@ def route_change(e: ft.RouteChangeEvent) -> NoReturn:
     for element in e.page.overlay:
         element.visible = False
     e.page.views.append(routes.get(e.page.route, pages.not_found_view)(e))
+    logging.info(user_active)
     e.page.update()

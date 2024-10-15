@@ -4,11 +4,12 @@ import logging
 from typing import NoReturn
 
 import flet as ft
-from academic.project import list_alunos
+from academic.project import list_alunos, media, user_active
 from academic.project.controllers.entidades import Aluno, User
 from academic.project.model.db import query
 
 users = query('SELECT * from users')
+alunos = query("SELECT nome from users WHERE status = 'aluno'")
 
 
 class Login(ft.View):
@@ -41,6 +42,7 @@ class Login(ft.View):
         )
         self.matricula = ft.TextField(
             label='Matrícula',
+            input_filter=ft.NumbersOnlyInputFilter(),
             suffix_icon=ft.icons.PERM_IDENTITY,
         )
         self.senha = ft.TextField(
@@ -109,15 +111,37 @@ class Login(ft.View):
 
     def to_enter(self, event: ft.ControlEvent) -> NoReturn:
         """To enter."""
-        result = User(
-            matricula=self.matricula.value,
-            senha=self.senha.value,
+        prof_valid = (
+            int(self.matricula.value),
+            str(self.senha.value),
+            'professor',
         )
-        logging.debug(result)
-        if (int(result.matricula), str(result.senha)) in users:
+        aluno_valid = (
+            int(self.matricula.value),
+            str(self.senha.value),
+            'aluno',
+        )
+
+        if any(user[: len(prof_valid)] == prof_valid for user in users):
+            user_act = query(
+                'SELECT * from users WHERE matricula == '
+                f"{self.matricula.value} and senha == '{self.senha.value}'",
+            )
+            user_active.append(
+                User(
+                    matricula=user_act[0][0],
+                    senha=user_act[0][1],
+                    status=user_act[0][2],
+                    nome=user_act[0][3],
+                ),
+            )
+            logging.info(users)
             event.page.go('/')
+        elif any(user[: len(aluno_valid)] == aluno_valid for user in users):
+            event.page.go('/notas')
         else:
             self.controls[0].content.controls.append(self.not_user)
+            event.page.update()
 
     def hover_enter(self, event: ft.ControlEvent) -> NoReturn:
         """On hover enter button."""
@@ -152,25 +176,42 @@ class FormAluno(ft.View):
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.padding = 0
 
+        self.materia = ft.Dropdown(
+            label='Matéria',
+            options=[
+                ft.dropdown.Option(
+                    'Aplic. de Cloud, Iot e Indústria 4.0 em Python',
+                ),
+                ft.dropdown.Option('Programação Orientada a Objetos em Java'),
+                ft.dropdown.Option(
+                    'Desenvolvimento Rápido de Aplicações em Python',
+                ),
+                ft.dropdown.Option('Programação de Microcontroladores'),
+            ],
+            width=700,
+        )
+
         self.controls = [
+            self.materia,
             ft.Container(
                 content=ft.Column(
                     controls=[],
                 ),
+                width=700,
             ),
         ]
 
-        self.media = ft.TextField(label='Média', value=6.0)
-        self.controls[0].content.controls.append(self.media)
+        self.name = ft.Dropdown(
+            label='Nome do aluno',
+            options=[ft.dropdown.Option(*aluno) for aluno in alunos],
+        )
+        self.controls[1].content.controls.append(self.name)
 
-        self.name = ft.TextField(label='Nome do aluno')
-        self.controls[0].content.controls.append(self.name)
+        self.nota_av = ft.TextField(label='Nota AV')
+        self.controls[1].content.controls.append(self.nota_av)
 
-        self.turma = ft.TextField(label='Turma')
-        self.controls[0].content.controls.append(self.turma)
-
-        self.nota = ft.TextField(label='Nota')
-        self.controls[0].content.controls.append(self.nota)
+        self.nota_trabalho = ft.TextField(label='Nota Trabalho')
+        self.controls[1].content.controls.append(self.nota_trabalho)
 
         self.btn_linha = ft.Row(
             controls=[
@@ -178,11 +219,11 @@ class FormAluno(ft.View):
                 ft.TextButton('Confirmar', on_click=self.confirm),
             ],
         )
-        self.controls[0].content.controls.append(self.btn_linha)
+        self.controls[1].content.controls.append(self.btn_linha)
 
     def add_nota(self, event: ft.ControlEvent) -> NoReturn:
         """Adiciona campo de nota no formulário."""
-        self.controls[0].content.controls.insert(
+        self.controls[1].content.controls.insert(
             -1,
             ft.TextField(label='Nota'),
         )
@@ -192,17 +233,16 @@ class FormAluno(ft.View):
         """Confirmar."""
         notas_alunos = [
             float(nota.value)
-            for nota in self.controls[0].content.controls[3:-1]
+            for nota in self.controls[1].content.controls[1:-1]
         ]
         result = Aluno(
             nome=self.name.value,
-            turma=self.turma.value,
-            media=float(self.media.value),
+            turma=self.materia.value,
             notas=notas_alunos,
         )
         list_alunos.append(result)
         logging.info(result)
-        for campos in self.controls[0].content.controls[1:]:
+        for campos in self.controls[1].content.controls:
             campos.value = ''
         event.page.update()
 
@@ -271,8 +311,7 @@ class TableView(ft.View):
                 ft.DataCell(
                     ft.Text(
                         'Aprovado'
-                        if sum(item.notas) / len(item.notas)
-                        >= float(item.media)
+                        if sum(item.notas) / len(item.notas) >= media
                         else 'Reprovado',
                     ),
                 ),
@@ -309,6 +348,14 @@ class AppBar(ft.AppBar):
                         text='Visualizar notas',
                         on_click=lambda _: events.page.go('/notas'),
                     ),
+                    ft.PopupMenuItem(
+                        text='Logoff',
+                        on_click=lambda _: events.page.go('/login'),
+                    ),
                 ],
             ),
         ]
+
+
+if __name__ == '__main__':
+    logging.info(users)
