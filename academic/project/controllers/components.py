@@ -4,7 +4,7 @@ import logging
 from typing import NoReturn
 
 import flet as ft
-from academic.project import list_alunos, media, user_active
+from academic.project import list_alunos, MEDIA, user_active
 from academic.project.controllers.entidades import Aluno, User
 from academic.project.model.db import query
 
@@ -136,8 +136,23 @@ class Login(ft.View):
                 ),
             )
             logging.info(users)
+            print(user_active)
             event.page.go('/')
         elif any(user[: len(aluno_valid)] == aluno_valid for user in users):
+            user_act = query(
+                'SELECT * from users WHERE matricula == '
+                f"{self.matricula.value} and senha == '{self.senha.value}'",
+            )
+            user_active.append(
+                User(
+                    matricula=user_act[0][0],
+                    senha=user_act[0][1],
+                    status=user_act[0][2],
+                    nome=user_act[0][3],
+                ),
+            )
+            logging.info(users)
+            print(user_active)
             event.page.go('/notas')
         else:
             self.controls[0].content.controls.append(self.not_user)
@@ -244,6 +259,7 @@ class FormAluno(ft.View):
         logging.info(result)
         for campos in self.controls[1].content.controls:
             campos.value = ''
+        print(list_alunos)
         event.page.update()
 
 
@@ -283,7 +299,8 @@ class TableView(ft.View):
         )
         for idx in range(len(list_alunos)):
             line = self.create_row(idx)
-            self.tabela.rows.append(line)
+            if line:
+                self.tabela.rows.append(line)
 
         self.msg = ft.Text(
             value='Sem dados para exibir.',
@@ -301,22 +318,23 @@ class TableView(ft.View):
     def create_row(self, idx: int) -> ft.DataRow:
         """Add row."""
         item = list_alunos[idx]
-        return ft.DataRow(
-            data=idx,
-            cells=[
-                ft.DataCell(ft.Text(str(idx + 1))),
-                ft.DataCell(ft.Text(f'{item.nome}')),
-                ft.DataCell(ft.Text(f'{item.turma}')),
-                ft.DataCell(ft.Text(''.join(str(item.notas)))),
-                ft.DataCell(
-                    ft.Text(
-                        'Aprovado'
-                        if sum(item.notas) / len(item.notas) >= media
-                        else 'Reprovado',
+        if item.nome == user_active[-1].nome or user_active[-1].status == 'professor':
+            return ft.DataRow(
+                data=idx,
+                cells=[
+                    ft.DataCell(ft.Text(str(idx + 1))),
+                    ft.DataCell(ft.Text(f'{item.nome}')),
+                    ft.DataCell(ft.Text(f'{item.turma}')),
+                    ft.DataCell(ft.Text(''.join(str(item.notas)))),
+                    ft.DataCell(
+                        ft.Text(
+                            'Aprovado'
+                            if sum(item.notas) / len(item.notas) >= MEDIA
+                            else 'Reprovado',
+                        ),
                     ),
-                ),
-            ],
-        )
+                ],
+            )
 
 
 class AppBar(ft.AppBar):
