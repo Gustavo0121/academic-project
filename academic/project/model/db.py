@@ -1,9 +1,15 @@
 """DataBase manipulation."""
+import sys
+from pathlib import Path
+
+sys.path.append(
+    Path(__file__).parents[2].resolve().as_posix(),
+)
 
 import sqlite3
 
 from academic.project import DB, users
-
+DB = Path(__file__).parent.joinpath('sistema_notas.db')
 
 def execute(comandos: list[str]) -> bool:
     """Função para executar comandos SQL no banco de dados."""
@@ -40,13 +46,22 @@ if not DB.is_file():
         matricula integer not null,
         senha text not null,
         status text not null,
-        nome text not null
-        )""",
+        nome text not null)""",
         """CREATE TABLE
-        professor(matricula integer not null, senha text not null)""",
-        """CREATE TABLE
-        aluno(matricula integer not null, senha text not null)""",
+        notas(
+        id integer primary key autoincrement,
+        nome text not null,
+        turma text not null,
+        nota_simulado1 integer not null,
+        nota_simulado2 integer not null,
+        nota_av integer not null,
+        nota_nc integer not null,
+        nota_avs integer not null,
+        status numeric not null)
+"""
     ])
+
+if __name__ == '__main__':
     for user in users.items():
         execute(
             [
@@ -54,6 +69,3 @@ if not DB.is_file():
                 ({user[0]}, '{user[1][0]}', '{user[1][1]}', '{user[1][2]}')""",
             ],
         )
-
-if __name__ == '__main__':
-    query('SELECT * from users')

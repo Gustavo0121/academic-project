@@ -4,13 +4,12 @@ import logging
 from typing import NoReturn
 
 import flet as ft
-from academic.project import list_alunos, media, user_active
+from academic.project import list_alunos, MEDIA, user_active
 from academic.project.controllers.entidades import Aluno, User
-from academic.project.model.db import query
+from academic.project.model.db import query, execute
 
 users = query('SELECT * from users')
 alunos = query("SELECT nome from users WHERE status = 'aluno'")
-
 
 class Login(ft.View):
     """Classe para tela de login."""
@@ -136,11 +135,28 @@ class Login(ft.View):
                 ),
             )
             logging.info(users)
+            print(user_active)
             event.page.go('/')
         elif any(user[: len(aluno_valid)] == aluno_valid for user in users):
+            user_act = query(
+                'SELECT * from users WHERE matricula == '
+                f"{self.matricula.value} and senha == '{self.senha.value}'",
+            )
+            user_active.append(
+                User(
+                    matricula=user_act[0][0],
+                    senha=user_act[0][1],
+                    status=user_act[0][2],
+                    nome=user_act[0][3],
+                ),
+            )
+            logging.info(users)
+            print(user_active)
             event.page.go('/notas')
         else:
             self.controls[0].content.controls.append(self.not_user)
+            print(self.matricula.value, self.senha.value)
+            print(users)
             event.page.update()
 
     def hover_enter(self, event: ft.ControlEvent) -> NoReturn:
@@ -176,7 +192,7 @@ class FormAluno(ft.View):
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.padding = 0
 
-        self.materia = ft.Dropdown(
+        self.turma = ft.Dropdown(
             label='Matéria',
             options=[
                 ft.dropdown.Option(
@@ -192,7 +208,7 @@ class FormAluno(ft.View):
         )
 
         self.controls = [
-            self.materia,
+            self.turma,
             ft.Container(
                 content=ft.Column(
                     controls=[],
@@ -207,43 +223,43 @@ class FormAluno(ft.View):
         )
         self.controls[1].content.controls.append(self.name)
 
+        self.simulado1 = ft.TextField(label='Simulado 1')
+        self.controls[1].content.controls.append(self.simulado1)
+        
+        self.simulado2 = ft.TextField(label='Simulado 2')
+        self.controls[1].content.controls.append(self.simulado2)
+        
         self.nota_av = ft.TextField(label='Nota AV')
         self.controls[1].content.controls.append(self.nota_av)
+        
+        self.nota_nc = ft.TextField(label='Nota Nova chance', value=0)
+        self.controls[1].content.controls.append(self.nota_nc)
 
-        self.nota_trabalho = ft.TextField(label='Nota Trabalho')
-        self.controls[1].content.controls.append(self.nota_trabalho)
+        self.nota_avs = ft.TextField(label='Nota AVS', value=0)
+        self.controls[1].content.controls.append(self.nota_avs)
 
-        self.btn_linha = ft.Row(
-            controls=[
-                ft.TextButton('Adicionar nota', on_click=self.add_nota),
-                ft.TextButton('Confirmar', on_click=self.confirm),
-            ],
-        )
-        self.controls[1].content.controls.append(self.btn_linha)
+        self.btn_confirm = ft.TextButton('Confirmar', on_click=self.confirm)
+        self.controls[1].content.controls.append(self.btn_confirm)
 
-    def add_nota(self, event: ft.ControlEvent) -> NoReturn:
-        """Adiciona campo de nota no formulário."""
-        self.controls[1].content.controls.insert(
-            -1,
-            ft.TextField(label='Nota'),
-        )
-        event.page.update()
 
     def confirm(self, event: ft.ControlEvent) -> NoReturn:
         """Confirmar."""
-        notas_alunos = [
-            float(nota.value)
-            for nota in self.controls[1].content.controls[1:-1]
-        ]
+        execute(
+            [
+                f"""INSERT INTO notas(nome, turma, nota_simulado1, nota_simulado2, nota_av, nota_nc, nota_avs, status) VALUES
+                ('{self.name.value}', '{self.turma.value}', {self.simulado1.value}, {self.simulado2.value}, {self.nota_av.value}, {self.nota_nc.value}, {self.nota_avs.value}, {1 if float(self.simulado1.value) + float(self.simulado2.value) + (float(self.nota_av.value)) + (float(self.nota_nc.value)) + (float(self.nota_avs.value)) >= MEDIA else 0})""",
+            ],
+        )
         result = Aluno(
             nome=self.name.value,
-            turma=self.materia.value,
-            notas=notas_alunos,
+            turma=self.turma.value,
+            notas=[self.simulado1.value, self.simulado2.value, self.nota_av.value, self.nota_nc.value, self.nota_avs.value],
         )
         list_alunos.append(result)
         logging.info(result)
         for campos in self.controls[1].content.controls:
             campos.value = ''
+        print(list_alunos)
         event.page.update()
 
 
@@ -259,8 +275,39 @@ class TableView(ft.View):
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.padding = 0
+        self.notas = query('SELECT * from notas')
 
         self.tabela = ft.DataTable(
+            columns=[
+                ft.DataColumn(
+                    ft.Text('Nome'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Turma'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Simulado 1'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Simulado 2'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Nota AV'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Nota NC'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Nota AVS'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Status'),
+                ),
+            ],
+            rows=[],
+        )
+
+        self.tabela_prof = ft.DataTable(
             columns=[
                 ft.DataColumn(
                     ft.Text(''),
@@ -273,17 +320,35 @@ class TableView(ft.View):
                     ft.Text('Turma'),
                 ),
                 ft.DataColumn(
-                    ft.Text('Notas'),
+                    ft.Text('Simulado 1'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Simulado 2'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Nota AV'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Nota NC'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Nota AVS'),
                 ),
                 ft.DataColumn(
                     ft.Text('Status'),
                 ),
+                ft.DataColumn(ft.Text('')),
+                ft.DataColumn(ft.Text('')),
             ],
             rows=[],
         )
-        for idx in range(len(list_alunos)):
+
+        for idx in range(len(self.notas)):
             line = self.create_row(idx)
-            self.tabela.rows.append(line)
+            if line and user_active[-1].status == 'aluno':
+                self.tabela.rows.append(line)
+            elif line and user_active[-1].status == 'professor':
+                self.tabela_prof.rows.append(line)
 
         self.msg = ft.Text(
             value='Sem dados para exibir.',
@@ -294,30 +359,73 @@ class TableView(ft.View):
 
         self.controls = [
             ft.Container(
-                content=self.tabela if list_alunos else self.msg,
+                content=self.tabela if user_active[-1].status == 'aluno' else self.tabela_prof,
             ),
         ]
 
     def create_row(self, idx: int) -> ft.DataRow:
         """Add row."""
-        item = list_alunos[idx]
-        return ft.DataRow(
-            data=idx,
-            cells=[
-                ft.DataCell(ft.Text(str(idx + 1))),
-                ft.DataCell(ft.Text(f'{item.nome}')),
-                ft.DataCell(ft.Text(f'{item.turma}')),
-                ft.DataCell(ft.Text(''.join(str(item.notas)))),
-                ft.DataCell(
-                    ft.Text(
-                        'Aprovado'
-                        if sum(item.notas) / len(item.notas) >= media
-                        else 'Reprovado',
+        item = self.notas[idx]
+        if item[1] == user_active[-1].nome:
+            return ft.DataRow(
+                data=idx,
+                cells=[
+                    ft.DataCell(ft.Text(f'{item[1]}')),
+                    ft.DataCell(ft.Text(f'{item[2]}')),
+                    ft.DataCell(ft.Text(f'{item[3]}')),
+                    ft.DataCell(ft.Text(f'{item[4]}')),
+                    ft.DataCell(ft.Text(f'{item[5]}')),
+                    ft.DataCell(ft.Text(f'{item[6]}')),
+                    ft.DataCell(ft.Text(f'{item[7]}')),
+                    ft.DataCell(
+                        ft.Text(
+                            'Aprovado' if bool(item[8]) else 'Reprovado',
+                        ),
                     ),
-                ),
-            ],
-        )
+                ],
+            )
+        elif user_active[-1].status == 'professor':
+            return ft.DataRow(
+                data=idx,
+                cells=[
+                    ft.DataCell(ft.Text(f'{item[0]}')),
+                    ft.DataCell(ft.Text(f'{item[1]}')),
+                    ft.DataCell(ft.Text(f'{item[2]}')),
+                    ft.DataCell(ft.Text(f'{item[3]}')),
+                    ft.DataCell(ft.Text(f'{item[4]}')),
+                    ft.DataCell(ft.Text(f'{item[5]}')),
+                    ft.DataCell(ft.Text(f'{item[6]}')),
+                    ft.DataCell(ft.Text(f'{item[7]}')),
+                    ft.DataCell(
+                        ft.Text(
+                            'Aprovado' if bool(item[8]) else 'Reprovado',
+                        ),
+                    ),
+                    ft.DataCell(
+                        ft.IconButton(
+                            ft.icons.EDIT_DOCUMENT,
+                            data=[idx, item[0]],
+                        ),
+                    ),
+                    ft.DataCell(
+                        ft.IconButton(
+                            ft.icons.DELETE,
+                            data=[idx, item[0]],
+                            icon_color='#A40000',
+                            on_click=self.delete,
+                        ),
+                    ),
+                ],
+            )
 
+    def delete(self, event: ft.ControlEvent) -> None:
+        """Delete a row of DataTable."""
+        print(self.notas)
+        logging.info(idx := event.control.data)
+        print(idx)
+        del self.tabela_prof.rows[idx[0]]
+        execute([f'DELETE FROM notas WHERE id = {idx[1]}'])
+        event.page.update()
 
 class AppBar(ft.AppBar):
     """Appbar component."""
