@@ -344,8 +344,8 @@ class TableView(ft.View):
             rows=[],
         )
 
-        for idx in range(len(self.notas)):
-            line = self.create_row(idx)
+        for idx, nota in enumerate(self.notas):
+            line = self.create_row(idx, nota)
             if line and user_active[-1].status == 'aluno':
                 self.tabela.rows.append(line)
             elif line and user_active[-1].status == 'professor':
@@ -364,9 +364,8 @@ class TableView(ft.View):
             ),
         ]
 
-    def create_row(self, idx: int) -> ft.DataRow:
+    def create_row(self, idx: int, item: tuple) -> ft.DataRow:
         """Add row."""
-        item = self.notas[idx]
         if item[1] == user_active[-1].nome:
             return ft.DataRow(
                 data=idx,
@@ -379,8 +378,14 @@ class TableView(ft.View):
                     ft.DataCell(ft.Text(f'{item[6]}')),
                     ft.DataCell(ft.Text(f'{item[7]}')),
                     ft.DataCell(
-                        ft.Text(
-                            'Aprovado' if bool(item[8]) else 'Reprovado',
+                        ft.Container(
+                            content=ft.Text(
+                                'Aprovado' if bool(item[8]) else 'Reprovado',
+                                style=ft.TextStyle(weight=ft.FontWeight.BOLD)
+                            ),
+                            bgcolor=ft.colors.with_opacity(0.8, '#03fc03') if bool(item[8]) else ft.colors.with_opacity(0.8, '#bf0a0a'),
+                            width=150,
+                            alignment=ft.alignment.center,
                         ),
                     ),
                 ],
@@ -398,8 +403,14 @@ class TableView(ft.View):
                     ft.DataCell(ft.Text(f'{item[6]}')),
                     ft.DataCell(ft.Text(f'{item[7]}')),
                     ft.DataCell(
-                        ft.Text(
-                            'Aprovado' if bool(item[8]) else 'Reprovado',
+                        ft.Container(
+                            content=ft.Text(
+                                'Aprovado' if bool(item[8]) else 'Reprovado',
+                                style=ft.TextStyle(weight=ft.FontWeight.BOLD)
+                            ),
+                            bgcolor=ft.colors.with_opacity(0.8, '#03fc03') if bool(item[8]) else ft.colors.with_opacity(0.8, '#bf0a0a'),
+                            width=150,
+                            alignment=ft.alignment.center,
                         ),
                     ),
                     ft.DataCell(
@@ -503,7 +514,7 @@ class TableView(ft.View):
                                 self.dlg_modal.content.controls[5].value,
                                 self.dlg_modal.content.controls[6].value,
                                 self.dlg_modal.content.controls[7].value,
-                                self.dlg_modal.content.controls[8].value,
+                                1 if float(self.dlg_modal.content.controls[3].value) + float(self.dlg_modal.content.controls[4].value) + float(self.dlg_modal.content.controls[5].value) + float(self.dlg_modal.content.controls[6].value) + float(self.dlg_modal.content.controls[7].value) >= MEDIA else 0,
                             ),
                         ),
                     ),
@@ -523,38 +534,9 @@ class TableView(ft.View):
         item: tuple,
     ) -> NoReturn:
         """Edit form data."""
+        print(f'notas atualizado: {item}')
         execute([f'UPDATE notas SET nota_simulado1 = {item[3]}, nota_simulado2 = {item[4]}, nota_av = {item[5]}, nota_nc = {item[6]}, nota_avs = {item[7]}, status = {1 if float(item[3]) + float(item[4]) + float(item[5]) + float(item[6]) + float(item[7]) >= MEDIA else 0} WHERE id = {idx[1]}'])
-        self.tabela_prof.rows[idx[0]] = ft.DataRow(
-                data=idx[0],
-                cells=[
-                    ft.DataCell(ft.Text(f'{item[0]}')),
-                    ft.DataCell(ft.Text(f'{item[1]}')),
-                    ft.DataCell(ft.Text(f'{item[2]}')),
-                    ft.DataCell(ft.Text(f'{item[3]}')),
-                    ft.DataCell(ft.Text(f'{item[4]}')),
-                    ft.DataCell(ft.Text(f'{item[5]}')),
-                    ft.DataCell(ft.Text(f'{item[6]}')),
-                    ft.DataCell(ft.Text(f'{item[7]}')),
-                    ft.DataCell(
-                        ft.Text('Aprovado' if float(item[3]) + float(item[4]) + float(item[5]) + float(item[6]) + float(item[7]) >= MEDIA else 'Reprovado'),
-                    ),
-                    ft.DataCell(
-                        ft.IconButton(
-                            ft.icons.EDIT_DOCUMENT,
-                            data=[idx[0], item[0]],
-                            on_click=self.dlgmodal,
-                        ),
-                    ),
-                    ft.DataCell(
-                        ft.IconButton(
-                            ft.icons.DELETE,
-                            data=[idx[0], item[0]],
-                            icon_color='#A40000',
-                            on_click=self.delete,
-                        ),
-                    ),
-                ],
-            )
+        self.tabela_prof.rows[idx[0]] = self.create_row(idx[0], item)
         event.page.close(self.dlg_modal)
         self.tabela_prof.update()
 
