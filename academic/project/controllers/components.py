@@ -280,10 +280,6 @@ class TableView(ft.View):
         self.tabela = ft.DataTable(
             columns=[
                 ft.DataColumn(
-                    ft.Text(''),
-                    numeric=True,
-                ),
-                ft.DataColumn(
                     ft.Text('Nome'),
                 ),
                 ft.DataColumn(
@@ -373,7 +369,6 @@ class TableView(ft.View):
             return ft.DataRow(
                 data=idx,
                 cells=[
-                    ft.DataCell(ft.Text(str(idx + 1))),
                     ft.DataCell(ft.Text(f'{item[0]}')),
                     ft.DataCell(ft.Text(f'{item[1]}')),
                     ft.DataCell(ft.Text(f'{item[2]}')),
