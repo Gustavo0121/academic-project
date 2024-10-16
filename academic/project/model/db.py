@@ -49,6 +49,7 @@ if not DB.is_file():
         nome text not null)""",
         """CREATE TABLE
         notas(
+        id integer primary key autoincrement,
         nome text not null,
         turma text not null,
         nota_simulado1 integer not null,

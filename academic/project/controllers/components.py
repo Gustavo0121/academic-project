@@ -246,7 +246,7 @@ class FormAluno(ft.View):
         """Confirmar."""
         execute(
             [
-                f"""INSERT INTO notas VALUES
+                f"""INSERT INTO notas(nome, turma, nota_simulado1, nota_simulado2, nota_av, nota_nc, nota_avs, status) VALUES
                 ('{self.name.value}', '{self.turma.value}', {self.simulado1.value}, {self.simulado2.value}, {self.nota_av.value}, {self.nota_nc.value}, {self.nota_avs.value}, {1 if float(self.simulado1.value) + float(self.simulado2.value) + (float(self.nota_av.value)) + (float(self.nota_nc.value)) + (float(self.nota_avs.value)) >= MEDIA else 0})""",
             ],
         )
@@ -338,12 +338,13 @@ class TableView(ft.View):
                     ft.Text('Status'),
                 ),
                 ft.DataColumn(ft.Text('')),
+                ft.DataColumn(ft.Text('')),
             ],
             rows=[],
         )
 
         for idx in range(len(self.notas)):
-            line = self.create_row(idx, )
+            line = self.create_row(idx)
             if line and user_active[-1].status == 'aluno':
                 self.tabela.rows.append(line)
             elif line and user_active[-1].status == 'professor':
@@ -365,20 +366,20 @@ class TableView(ft.View):
     def create_row(self, idx: int) -> ft.DataRow:
         """Add row."""
         item = self.notas[idx]
-        if item[0] == user_active[-1].nome:
+        if item[1] == user_active[-1].nome:
             return ft.DataRow(
                 data=idx,
                 cells=[
-                    ft.DataCell(ft.Text(f'{item[0]}')),
                     ft.DataCell(ft.Text(f'{item[1]}')),
                     ft.DataCell(ft.Text(f'{item[2]}')),
                     ft.DataCell(ft.Text(f'{item[3]}')),
                     ft.DataCell(ft.Text(f'{item[4]}')),
                     ft.DataCell(ft.Text(f'{item[5]}')),
                     ft.DataCell(ft.Text(f'{item[6]}')),
+                    ft.DataCell(ft.Text(f'{item[7]}')),
                     ft.DataCell(
                         ft.Text(
-                            'Aprovado' if bool(item[7]) else 'Reprovado',
+                            'Aprovado' if bool(item[8]) else 'Reprovado',
                         ),
                     ),
                 ],
@@ -387,7 +388,6 @@ class TableView(ft.View):
             return ft.DataRow(
                 data=idx,
                 cells=[
-                    ft.DataCell(ft.Text(str(idx + 1))),
                     ft.DataCell(ft.Text(f'{item[0]}')),
                     ft.DataCell(ft.Text(f'{item[1]}')),
                     ft.DataCell(ft.Text(f'{item[2]}')),
@@ -395,19 +395,37 @@ class TableView(ft.View):
                     ft.DataCell(ft.Text(f'{item[4]}')),
                     ft.DataCell(ft.Text(f'{item[5]}')),
                     ft.DataCell(ft.Text(f'{item[6]}')),
+                    ft.DataCell(ft.Text(f'{item[7]}')),
                     ft.DataCell(
                         ft.Text(
-                            'Aprovado' if bool(item[7]) else 'Reprovado',
+                            'Aprovado' if bool(item[8]) else 'Reprovado',
                         ),
                     ),
                     ft.DataCell(
                         ft.IconButton(
                             ft.icons.EDIT_DOCUMENT,
-                            data=idx,
+                            data=[idx, item[0]],
+                        ),
+                    ),
+                    ft.DataCell(
+                        ft.IconButton(
+                            ft.icons.DELETE,
+                            data=[idx, item[0]],
+                            icon_color='#A40000',
+                            on_click=self.delete,
                         ),
                     ),
                 ],
             )
+
+    def delete(self, event: ft.ControlEvent) -> None:
+        """Delete a row of DataTable."""
+        print(self.notas)
+        logging.info(idx := event.control.data)
+        print(idx)
+        del self.tabela_prof.rows[idx[0]]
+        execute([f'DELETE FROM notas WHERE id = {idx[1]}'])
+        event.page.update()
 
 class AppBar(ft.AppBar):
     """Appbar component."""
