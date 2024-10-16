@@ -1,9 +1,15 @@
 """DataBase manipulation."""
+import sys
+from pathlib import Path
+
+sys.path.append(
+    Path(__file__).parents[2].resolve().as_posix(),
+)
 
 import sqlite3
 
 from academic.project import DB, users
-
+DB = Path(__file__).parent.joinpath('sistema_notas.db')
 
 def execute(comandos: list[str]) -> bool:
     """Função para executar comandos SQL no banco de dados."""
@@ -45,8 +51,11 @@ if not DB.is_file():
         notas(
         nome text not null,
         turma text not null,
+        nota_simulado1 integer not null,
+        nota_simulado2 integer not null,
         nota_av integer not null,
-        nota_trabalho integer not null,
+        nota_nc integer not null,
+        nota_avs integer not null,
         status numeric not null)
 """
     ])

@@ -155,6 +155,8 @@ class Login(ft.View):
             event.page.go('/notas')
         else:
             self.controls[0].content.controls.append(self.not_user)
+            print(self.matricula.value, self.senha.value)
+            print(users)
             event.page.update()
 
     def hover_enter(self, event: ft.ControlEvent) -> NoReturn:
@@ -221,11 +223,20 @@ class FormAluno(ft.View):
         )
         self.controls[1].content.controls.append(self.name)
 
+        self.simulado1 = ft.TextField(label='Simulado 1')
+        self.controls[1].content.controls.append(self.simulado1)
+        
+        self.simulado2 = ft.TextField(label='Simulado 2')
+        self.controls[1].content.controls.append(self.simulado2)
+        
         self.nota_av = ft.TextField(label='Nota AV')
         self.controls[1].content.controls.append(self.nota_av)
+        
+        self.nota_nc = ft.TextField(label='Nota Nova chance', value=0)
+        self.controls[1].content.controls.append(self.nota_nc)
 
-        self.nota_trabalho = ft.TextField(label='Nota Trabalho')
-        self.controls[1].content.controls.append(self.nota_trabalho)
+        self.nota_avs = ft.TextField(label='Nota AVS', value=0)
+        self.controls[1].content.controls.append(self.nota_avs)
 
         self.btn_confirm = ft.TextButton('Confirmar', on_click=self.confirm)
         self.controls[1].content.controls.append(self.btn_confirm)
@@ -236,13 +247,13 @@ class FormAluno(ft.View):
         execute(
             [
                 f"""INSERT INTO notas VALUES
-                ('{self.name.value}', '{self.turma.value}', {self.nota_av.value}, {self.nota_trabalho.value}, {1 if (float(self.nota_av.value) + float(self.nota_trabalho.value)) / 2 > MEDIA else 0})""",
+                ('{self.name.value}', '{self.turma.value}', {self.simulado1.value}, {self.simulado2.value}, {self.nota_av.value}, {self.nota_nc.value}, {self.nota_avs.value}, {1 if float(self.simulado1.value) + float(self.simulado2.value) + (float(self.nota_av.value)) + (float(self.nota_nc.value)) + (float(self.nota_avs.value)) >= MEDIA else 0})""",
             ],
         )
         result = Aluno(
             nome=self.name.value,
             turma=self.turma.value,
-            notas=[self.nota_av.value, self.nota_trabalho.value],
+            notas=[self.simulado1.value, self.simulado2.value, self.nota_av.value, self.nota_nc.value, self.nota_avs.value],
         )
         list_alunos.append(result)
         logging.info(result)
@@ -279,10 +290,19 @@ class TableView(ft.View):
                     ft.Text('Turma'),
                 ),
                 ft.DataColumn(
+                    ft.Text('Simulado 1'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Simulado 2'),
+                ),
+                ft.DataColumn(
                     ft.Text('Nota AV'),
                 ),
                 ft.DataColumn(
-                    ft.Text('Nota Trabalho'),
+                    ft.Text('Nota NC'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Nota AVS'),
                 ),
                 ft.DataColumn(
                     ft.Text('Status'),
@@ -304,10 +324,19 @@ class TableView(ft.View):
                     ft.Text('Turma'),
                 ),
                 ft.DataColumn(
+                    ft.Text('Simulado 1'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Simulado 2'),
+                ),
+                ft.DataColumn(
                     ft.Text('Nota AV'),
                 ),
                 ft.DataColumn(
-                    ft.Text('Nota Trabalho'),
+                    ft.Text('Nota NC'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Nota AVS'),
                 ),
                 ft.DataColumn(
                     ft.Text('Status'),
@@ -349,9 +378,12 @@ class TableView(ft.View):
                     ft.DataCell(ft.Text(f'{item[1]}')),
                     ft.DataCell(ft.Text(f'{item[2]}')),
                     ft.DataCell(ft.Text(f'{item[3]}')),
+                    ft.DataCell(ft.Text(f'{item[4]}')),
+                    ft.DataCell(ft.Text(f'{item[5]}')),
+                    ft.DataCell(ft.Text(f'{item[6]}')),
                     ft.DataCell(
                         ft.Text(
-                            'Aprovado' if bool(item[4]) else 'Reprovado',
+                            'Aprovado' if bool(item[7]) else 'Reprovado',
                         ),
                     ),
                 ],
@@ -365,9 +397,12 @@ class TableView(ft.View):
                     ft.DataCell(ft.Text(f'{item[1]}')),
                     ft.DataCell(ft.Text(f'{item[2]}')),
                     ft.DataCell(ft.Text(f'{item[3]}')),
+                    ft.DataCell(ft.Text(f'{item[4]}')),
+                    ft.DataCell(ft.Text(f'{item[5]}')),
+                    ft.DataCell(ft.Text(f'{item[6]}')),
                     ft.DataCell(
                         ft.Text(
-                            'Aprovado' if bool(item[4]) else 'Reprovado',
+                            'Aprovado' if bool(item[7]) else 'Reprovado',
                         ),
                     ),
                     ft.DataCell(
