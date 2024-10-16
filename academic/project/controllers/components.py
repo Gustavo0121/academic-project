@@ -223,19 +223,19 @@ class FormAluno(ft.View):
         )
         self.controls[1].content.controls.append(self.name)
 
-        self.simulado1 = ft.TextField(label='Simulado 1')
+        self.simulado1 = ft.TextField(label='Simulado 1', input_filter=ft.InputFilter(regex_string=r'^(0(\.\d{0,9})?|1(\.0{0,9})?)$'))
         self.controls[1].content.controls.append(self.simulado1)
-        
-        self.simulado2 = ft.TextField(label='Simulado 2')
+
+        self.simulado2 = ft.TextField(label='Simulado 2', input_filter=ft.InputFilter(regex_string=r'^(0(\.\d{0,9})?|1(\.0{0,9})?)$'))
         self.controls[1].content.controls.append(self.simulado2)
-        
-        self.nota_av = ft.TextField(label='Nota AV')
+
+        self.nota_av = ft.TextField(label='Nota AV', input_filter=ft.NumbersOnlyInputFilter())
         self.controls[1].content.controls.append(self.nota_av)
-        
-        self.nota_nc = ft.TextField(label='Nota Nova chance', value=0)
+
+        self.nota_nc = ft.TextField(label='Nota Nova chance', value=0, input_filter=ft.NumbersOnlyInputFilter())
         self.controls[1].content.controls.append(self.nota_nc)
 
-        self.nota_avs = ft.TextField(label='Nota AVS', value=0)
+        self.nota_avs = ft.TextField(label='Nota AVS', value=0, input_filter=ft.NumbersOnlyInputFilter())
         self.controls[1].content.controls.append(self.nota_avs)
 
         self.btn_confirm = ft.TextButton('Confirmar', on_click=self.confirm)
