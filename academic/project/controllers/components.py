@@ -276,6 +276,7 @@ class TableView(ft.View):
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.padding = 0
         self.notas = query('SELECT * from notas')
+        self.dlg_modal = ft.AlertDialog()
 
         self.tabela = ft.DataTable(
             columns=[
@@ -405,6 +406,7 @@ class TableView(ft.View):
                         ft.IconButton(
                             ft.icons.EDIT_DOCUMENT,
                             data=[idx, item[0]],
+                            on_click=self.dlgmodal,
                         ),
                     ),
                     ft.DataCell(
@@ -426,6 +428,135 @@ class TableView(ft.View):
         del self.tabela_prof.rows[idx[0]]
         execute([f'DELETE FROM notas WHERE id = {idx[1]}'])
         event.page.update()
+
+    def dlgmodal(self, event:ft.ControlEvent) -> None:
+        """Edit a row of DataTable."""
+        self.notas = query('SELECT * from notas')
+        logging.info(idx := event.control.data)
+        print(self.notas, idx)
+        item = self.notas[idx[0]]
+        self.dlg_modal = ft.AlertDialog(
+            modal=True,
+            title=ft.Text('Confirme atualização'),
+            content=ft.Column(
+                controls=[
+                    ft.TextField(
+                        label='Índice',
+                        value=item[0],
+                        read_only=True,
+                    ),
+                    ft.TextField(
+                        label='Nome',
+                        value=item[1],
+                        read_only=True,
+                    ),
+                    ft.TextField(
+                        label='Turma',
+                        value=item[2],
+                        read_only=True,
+                    ),
+                    ft.TextField(
+                        label='Nota Simulado 1',
+                        value=item[3],
+                    ),
+                    ft.TextField(
+                        label='Nota Simulado 2',
+                        value=item[4],
+                    ),
+                    ft.TextField(
+                        label='Nota AV',
+                        value=item[5],
+                    ),
+                    ft.TextField(
+                        label='Nota NC',
+                        value=item[6],
+                    ),
+                    ft.TextField(
+                        label='Nota AVS',
+                        value=item[7],
+                    ),
+                    ft.TextField(
+                        label='Status',
+                        value='Aprovado' if bool(item[8]) else 'Reprovado',
+                        read_only=True,
+                    ),
+                ],
+            ),
+            actions=[
+                ft.TextButton(
+                    'Cancelar',
+                    on_click=lambda e: e.page.close(self.dlg_modal),
+                ),
+                ft.TextButton(
+                    'Atualizar',
+                    on_click=lambda e: (
+                        logging.info('%s', idx),
+                        self.edit(
+                            event=e,
+                            idx=idx,
+                            item=(
+                                self.dlg_modal.content.controls[0].value,
+                                self.dlg_modal.content.controls[1].value,
+                                self.dlg_modal.content.controls[2].value,
+                                self.dlg_modal.content.controls[3].value,
+                                self.dlg_modal.content.controls[4].value,
+                                self.dlg_modal.content.controls[5].value,
+                                self.dlg_modal.content.controls[6].value,
+                                self.dlg_modal.content.controls[7].value,
+                                self.dlg_modal.content.controls[8].value,
+                            ),
+                        ),
+                    ),
+                ),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+            on_dismiss=lambda e: e.page.add(
+                ft.Text('Modal dialog dismissed'),
+            ),
+        )
+        event.page.open(self.dlg_modal)
+
+    def edit(
+        self,
+        event: ft.ControlEvent,
+        idx: int,
+        item: tuple,
+    ) -> NoReturn:
+        """Edit form data."""
+        execute([f'UPDATE notas SET nota_simulado1 = {item[3]}, nota_simulado2 = {item[4]}, nota_av = {item[5]}, nota_nc = {item[6]}, nota_avs = {item[7]}, status = {1 if float(item[3]) + float(item[4]) + float(item[5]) + float(item[6]) + float(item[7]) >= MEDIA else 0} WHERE id = {idx[1]}'])
+        self.tabela_prof.rows[idx[0]] = ft.DataRow(
+                data=idx[0],
+                cells=[
+                    ft.DataCell(ft.Text(f'{item[0]}')),
+                    ft.DataCell(ft.Text(f'{item[1]}')),
+                    ft.DataCell(ft.Text(f'{item[2]}')),
+                    ft.DataCell(ft.Text(f'{item[3]}')),
+                    ft.DataCell(ft.Text(f'{item[4]}')),
+                    ft.DataCell(ft.Text(f'{item[5]}')),
+                    ft.DataCell(ft.Text(f'{item[6]}')),
+                    ft.DataCell(ft.Text(f'{item[7]}')),
+                    ft.DataCell(
+                        ft.Text('Aprovado' if float(item[3]) + float(item[4]) + float(item[5]) + float(item[6]) + float(item[7]) >= MEDIA else 'Reprovado'),
+                    ),
+                    ft.DataCell(
+                        ft.IconButton(
+                            ft.icons.EDIT_DOCUMENT,
+                            data=[idx[0], item[0]],
+                            on_click=self.dlgmodal,
+                        ),
+                    ),
+                    ft.DataCell(
+                        ft.IconButton(
+                            ft.icons.DELETE,
+                            data=[idx[0], item[0]],
+                            icon_color='#A40000',
+                            on_click=self.delete,
+                        ),
+                    ),
+                ],
+            )
+        event.page.close(self.dlg_modal)
+        self.tabela_prof.update()
 
 class AppBar(ft.AppBar):
     """Appbar component."""
