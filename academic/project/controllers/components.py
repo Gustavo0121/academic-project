@@ -4,12 +4,13 @@ import logging
 from typing import NoReturn
 
 import flet as ft
-from academic.project import list_alunos, MEDIA, user_active
+from academic.project import MEDIA, list_alunos, user_active
 from academic.project.controllers.entidades import Aluno, User
-from academic.project.model.db import query, execute
+from academic.project.model.db import execute, query
 
 users = query('SELECT * from users')
 alunos = query("SELECT nome from users WHERE status = 'aluno'")
+
 
 class Login(ft.View):
     """Classe para tela de login."""
@@ -135,7 +136,6 @@ class Login(ft.View):
                 ),
             )
             logging.info(users)
-            print(user_active)
             event.page.go('/')
         elif any(user[: len(aluno_valid)] == aluno_valid for user in users):
             user_act = query(
@@ -151,12 +151,9 @@ class Login(ft.View):
                 ),
             )
             logging.info(users)
-            print(user_active)
             event.page.go('/notas')
         else:
             self.controls[0].content.controls.append(self.not_user)
-            print(self.matricula.value, self.senha.value)
-            print(users)
             event.page.update()
 
     def hover_enter(self, event: ft.ControlEvent) -> NoReturn:
@@ -223,43 +220,81 @@ class FormAluno(ft.View):
         )
         self.controls[1].content.controls.append(self.name)
 
-        self.simulado1 = ft.TextField(label='Simulado 1')
+        self.simulado1 = ft.TextField(
+            label='Simulado 1',
+            input_filter=ft.InputFilter(
+                regex_string=r'^(0(\.\d{0,9})?|1(\.0{0,9})?)$',
+            ),
+        )
         self.controls[1].content.controls.append(self.simulado1)
-        
-        self.simulado2 = ft.TextField(label='Simulado 2')
+
+        self.simulado2 = ft.TextField(
+            label='Simulado 2',
+            input_filter=ft.InputFilter(
+                regex_string=r'^(0(\.\d{0,9})?|1(\.0{0,9})?)$',
+            ),
+        )
         self.controls[1].content.controls.append(self.simulado2)
-        
-        self.nota_av = ft.TextField(label='Nota AV')
+
+        self.nota_av = ft.TextField(
+            label='Nota AV',
+            input_filter=ft.NumbersOnlyInputFilter(),
+        )
         self.controls[1].content.controls.append(self.nota_av)
-        
-        self.nota_nc = ft.TextField(label='Nota Nova chance', value=0)
+
+        self.nota_nc = ft.TextField(
+            label='Nota Nova chance',
+            value=0,
+            input_filter=ft.NumbersOnlyInputFilter(),
+        )
         self.controls[1].content.controls.append(self.nota_nc)
 
-        self.nota_avs = ft.TextField(label='Nota AVS', value=0)
+        self.nota_avs = ft.TextField(
+            label='Nota AVS',
+            value=0,
+            input_filter=ft.NumbersOnlyInputFilter(),
+        )
         self.controls[1].content.controls.append(self.nota_avs)
 
         self.btn_confirm = ft.TextButton('Confirmar', on_click=self.confirm)
         self.controls[1].content.controls.append(self.btn_confirm)
 
-
     def confirm(self, event: ft.ControlEvent) -> NoReturn:
         """Confirmar."""
+        notas = [
+            float(self.simulado1.value),
+            float(self.simulado2.value),
+            float(self.nota_av.value),
+            float(self.nota_nc.value),
+            float(self.nota_avs.value),
+        ]
         execute(
             [
-                f"""INSERT INTO notas(nome, turma, nota_simulado1, nota_simulado2, nota_av, nota_nc, nota_avs, status) VALUES
-                ('{self.name.value}', '{self.turma.value}', {self.simulado1.value}, {self.simulado2.value}, {self.nota_av.value}, {self.nota_nc.value}, {self.nota_avs.value}, {1 if float(self.simulado1.value) + float(self.simulado2.value) + (float(self.nota_av.value)) + (float(self.nota_nc.value)) + (float(self.nota_avs.value)) >= MEDIA else 0})""",
+                f"""INSERT INTO notas(
+                nome, turma, nota_simulado1, nota_simulado2, nota_av, nota_nc,
+                nota_avs, status) VALUES
+                ('{self.name.value}', '{self.turma.value}',
+                {self.simulado1.value}, {self.simulado2.value},
+                {self.nota_av.value}, {self.nota_nc.value},
+                {self.nota_avs.value},
+                {1 if sum(notas) >= MEDIA else 0})""",
             ],
         )
         result = Aluno(
             nome=self.name.value,
             turma=self.turma.value,
-            notas=[self.simulado1.value, self.simulado2.value, self.nota_av.value, self.nota_nc.value, self.nota_avs.value],
+            notas=[
+                self.simulado1.value,
+                self.simulado2.value,
+                self.nota_av.value,
+                self.nota_nc.value,
+                self.nota_avs.value,
+            ],
         )
         list_alunos.append(result)
         logging.info(result)
         for campos in self.controls[1].content.controls:
             campos.value = ''
-        print(list_alunos)
         event.page.update()
 
 
@@ -276,6 +311,7 @@ class TableView(ft.View):
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.padding = 0
         self.notas = query('SELECT * from notas')
+        self.dlg_modal = ft.AlertDialog()
 
         self.tabela = ft.DataTable(
             columns=[
@@ -343,8 +379,8 @@ class TableView(ft.View):
             rows=[],
         )
 
-        for idx in range(len(self.notas)):
-            line = self.create_row(idx)
+        for idx, nota in enumerate(self.notas):
+            line = self.create_row(idx, nota)
             if line and user_active[-1].status == 'aluno':
                 self.tabela.rows.append(line)
             elif line and user_active[-1].status == 'professor':
@@ -359,13 +395,14 @@ class TableView(ft.View):
 
         self.controls = [
             ft.Container(
-                content=self.tabela if user_active[-1].status == 'aluno' else self.tabela_prof,
+                content=self.tabela
+                if user_active[-1].status == 'aluno'
+                else self.tabela_prof,
             ),
         ]
 
-    def create_row(self, idx: int) -> ft.DataRow:
+    def create_row(self, idx: int, item: tuple) -> ft.DataRow | None:
         """Add row."""
-        item = self.notas[idx]
         if item[1] == user_active[-1].nome:
             return ft.DataRow(
                 data=idx,
@@ -378,13 +415,21 @@ class TableView(ft.View):
                     ft.DataCell(ft.Text(f'{item[6]}')),
                     ft.DataCell(ft.Text(f'{item[7]}')),
                     ft.DataCell(
-                        ft.Text(
-                            'Aprovado' if bool(item[8]) else 'Reprovado',
+                        ft.Container(
+                            content=ft.Text(
+                                'Aprovado' if bool(item[8]) else 'Reprovado',
+                                style=ft.TextStyle(weight=ft.FontWeight.BOLD),
+                            ),
+                            bgcolor=ft.colors.with_opacity(0.8, '#03fc03')
+                            if bool(item[8])
+                            else ft.colors.with_opacity(0.8, '#bf0a0a'),
+                            width=150,
+                            alignment=ft.alignment.center,
                         ),
                     ),
                 ],
             )
-        elif user_active[-1].status == 'professor':
+        if user_active[-1].status == 'professor':
             return ft.DataRow(
                 data=idx,
                 cells=[
@@ -397,14 +442,23 @@ class TableView(ft.View):
                     ft.DataCell(ft.Text(f'{item[6]}')),
                     ft.DataCell(ft.Text(f'{item[7]}')),
                     ft.DataCell(
-                        ft.Text(
-                            'Aprovado' if bool(item[8]) else 'Reprovado',
+                        ft.Container(
+                            content=ft.Text(
+                                'Aprovado' if bool(item[8]) else 'Reprovado',
+                                style=ft.TextStyle(weight=ft.FontWeight.BOLD),
+                            ),
+                            bgcolor=ft.colors.with_opacity(0.8, '#03fc03')
+                            if bool(item[8])
+                            else ft.colors.with_opacity(0.8, '#bf0a0a'),
+                            width=150,
+                            alignment=ft.alignment.center,
                         ),
                     ),
                     ft.DataCell(
                         ft.IconButton(
                             ft.icons.EDIT_DOCUMENT,
                             data=[idx, item[0]],
+                            on_click=self.dlgmodal,
                         ),
                     ),
                     ft.DataCell(
@@ -417,15 +471,142 @@ class TableView(ft.View):
                     ),
                 ],
             )
+        return None
 
     def delete(self, event: ft.ControlEvent) -> None:
         """Delete a row of DataTable."""
-        print(self.notas)
         logging.info(idx := event.control.data)
-        print(idx)
         del self.tabela_prof.rows[idx[0]]
         execute([f'DELETE FROM notas WHERE id = {idx[1]}'])
         event.page.update()
+
+    def dlgmodal(self, event: ft.ControlEvent) -> None:
+        """Edit a row of DataTable."""
+        self.notas = query('SELECT * from notas')
+        logging.info(idx := event.control.data)
+        item = self.notas[idx[0]]
+        self.dlg_modal = ft.AlertDialog(
+            modal=True,
+            title=ft.Text('Confirme atualização'),
+            content=ft.Column(
+                controls=[
+                    ft.TextField(
+                        label='Índice',
+                        value=item[0],
+                        read_only=True,
+                    ),
+                    ft.TextField(
+                        label='Nome',
+                        value=item[1],
+                        read_only=True,
+                    ),
+                    ft.TextField(
+                        label='Turma',
+                        value=item[2],
+                        read_only=True,
+                    ),
+                    ft.TextField(
+                        label='Nota Simulado 1',
+                        value=item[3],
+                    ),
+                    ft.TextField(
+                        label='Nota Simulado 2',
+                        value=item[4],
+                    ),
+                    ft.TextField(
+                        label='Nota AV',
+                        value=item[5],
+                    ),
+                    ft.TextField(
+                        label='Nota NC',
+                        value=item[6],
+                    ),
+                    ft.TextField(
+                        label='Nota AVS',
+                        value=item[7],
+                    ),
+                    ft.TextField(
+                        label='Status',
+                        value='Aprovado' if bool(item[8]) else 'Reprovado',
+                        read_only=True,
+                    ),
+                ],
+            ),
+            actions=[
+                ft.TextButton(
+                    'Cancelar',
+                    on_click=lambda e: e.page.close(self.dlg_modal),
+                ),
+                ft.TextButton(
+                    'Atualizar',
+                    on_click=lambda e: (
+                        logging.info('%s', idx),
+                        self.edit(
+                            event=e,
+                            idx=idx,
+                            item=(
+                                self.dlg_modal.content.controls[0].value,
+                                self.dlg_modal.content.controls[1].value,
+                                self.dlg_modal.content.controls[2].value,
+                                self.dlg_modal.content.controls[3].value,
+                                self.dlg_modal.content.controls[4].value,
+                                self.dlg_modal.content.controls[5].value,
+                                self.dlg_modal.content.controls[6].value,
+                                self.dlg_modal.content.controls[7].value,
+                                1
+                                if float(
+                                    self.dlg_modal.content.controls[3].value,
+                                )
+                                + float(
+                                    self.dlg_modal.content.controls[4].value,
+                                )
+                                + float(
+                                    self.dlg_modal.content.controls[5].value,
+                                )
+                                + float(
+                                    self.dlg_modal.content.controls[6].value,
+                                )
+                                + float(
+                                    self.dlg_modal.content.controls[7].value,
+                                )
+                                >= MEDIA
+                                else 0,
+                            ),
+                        ),
+                    ),
+                ),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+            on_dismiss=lambda e: e.page.add(
+                ft.Text('Modal dialog dismissed'),
+            ),
+        )
+        event.page.open(self.dlg_modal)
+
+    def edit(
+        self,
+        event: ft.ControlEvent,
+        idx: int,
+        item: tuple,
+    ) -> NoReturn:
+        """Edit form data."""
+        notas = [
+            float(item[3]),
+            float(item[4]),
+            float(item[5]),
+            float(item[6]),
+            float(item[7]),
+        ]
+        execute([
+            f"""UPDATE notas SET nota_simulado1 = {item[3]},
+            nota_simulado2 = {item[4]}, nota_av = {item[5]},
+            nota_nc = {item[6]}, nota_avs = {item[7]},
+            status = {1 if sum(notas) >= MEDIA else 0} WHERE id = {idx[1]}""",
+        ])
+        self.tabela_prof.rows[idx[0]] = self.create_row(idx[0], item)
+        event.page.close(self.dlg_modal)
+        self.tabela_prof.update()
+
 
 class AppBar(ft.AppBar):
     """Appbar component."""
