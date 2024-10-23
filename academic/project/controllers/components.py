@@ -44,11 +44,13 @@ class Login(ft.View):
             label='Matrícula',
             input_filter=ft.NumbersOnlyInputFilter(),
             suffix_icon=ft.icons.PERM_IDENTITY,
+            width=320,
         )
         self.senha = ft.TextField(
             label='Senha',
             password=True,
             can_reveal_password=True,
+            width=320,
         )
         self.captcha = ft.Checkbox(
             'Não sou um robô',
@@ -77,12 +79,14 @@ class Login(ft.View):
                     controls=[
                         ft.Container(
                             content=ft.Text(
-                                'SGA - Sistema de Gerenciamento Acadêmico',
+                                'SIA - Sistema de Informações Acadêmicas',
+                                weight=ft.FontWeight.BOLD,
+                                size=18,
                             ),
                             padding=ft.padding.only(bottom=85, top=20),
                         ),
                         self.btn_email,
-                        ft.Text('---------- ou ----------'),
+                        ft.Text('------------------- ou -------------------',  weight=ft.FontWeight.BOLD),
                         self.matricula,
                         self.senha,
                         ft.Container(
@@ -91,9 +95,12 @@ class Login(ft.View):
                                     self.captcha,
                                     ft.Icon(ft.icons.RECYCLING),
                                 ],
+                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                             ),
                             bgcolor='#ebedeb',
                             border=ft.border.all(1, '#0a0a0a'),
+                            width=320,
+                            padding=ft.padding.only(right=8)
                         ),
                         ft.Container(
                             content=self.entrar,
@@ -102,10 +109,12 @@ class Login(ft.View):
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     spacing=20,
+                    width=350,
                 ),
-                width=350,
+                width=450,
                 height=events.page.window.height - 50,
                 padding=30,
+                border=ft.border.all(3, 'black')
             ),
         ]
 
