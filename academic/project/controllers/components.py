@@ -112,7 +112,7 @@ class Login(ft.View):
                     width=350,
                 ),
                 width=450,
-                height=events.page.window.height - 50,
+                height=740,
                 padding=30,
                 border=ft.border.all(3, 'black')
             ),
@@ -198,6 +198,18 @@ class FormAluno(ft.View):
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.padding = 0
 
+        self.controls = [
+            ft.Container(
+                content=ft.Column(
+                    controls=[],
+                ),
+                width=700,
+                height=550,
+                padding=30,
+                border=ft.border.all(3, 'black')
+            ),
+        ]
+
         self.turma = ft.Dropdown(
             label='Matéria',
             options=[
@@ -212,22 +224,13 @@ class FormAluno(ft.View):
             ],
             width=700,
         )
-
-        self.controls = [
-            self.turma,
-            ft.Container(
-                content=ft.Column(
-                    controls=[],
-                ),
-                width=700,
-            ),
-        ]
+        self.controls[0].content.controls.append(self.turma)
 
         self.name = ft.Dropdown(
             label='Nome do aluno',
             options=[ft.dropdown.Option(*aluno) for aluno in alunos],
         )
-        self.controls[1].content.controls.append(self.name)
+        self.controls[0].content.controls.append(self.name)
 
         self.simulado1 = ft.TextField(
             label='Simulado 1',
@@ -235,7 +238,7 @@ class FormAluno(ft.View):
                 regex_string=r'^(0(\.\d{0,9})?|1(\.0{0,9})?)$',
             ),
         )
-        self.controls[1].content.controls.append(self.simulado1)
+        self.controls[0].content.controls.append(self.simulado1)
 
         self.simulado2 = ft.TextField(
             label='Simulado 2',
@@ -243,30 +246,66 @@ class FormAluno(ft.View):
                 regex_string=r'^(0(\.\d{0,9})?|1(\.0{0,9})?)$',
             ),
         )
-        self.controls[1].content.controls.append(self.simulado2)
+        self.controls[0].content.controls.append(self.simulado2)
 
         self.nota_av = ft.TextField(
             label='Nota AV',
             input_filter=ft.NumbersOnlyInputFilter(),
         )
-        self.controls[1].content.controls.append(self.nota_av)
+        self.controls[0].content.controls.append(self.nota_av)
 
         self.nota_nc = ft.TextField(
             label='Nota Nova chance',
             value=0,
             input_filter=ft.NumbersOnlyInputFilter(),
         )
-        self.controls[1].content.controls.append(self.nota_nc)
+        self.controls[0].content.controls.append(self.nota_nc)
 
         self.nota_avs = ft.TextField(
             label='Nota AVS',
             value=0,
             input_filter=ft.NumbersOnlyInputFilter(),
         )
-        self.controls[1].content.controls.append(self.nota_avs)
+        self.controls[0].content.controls.append(self.nota_avs)
 
-        self.btn_confirm = ft.TextButton('Confirmar', on_click=self.confirm)
-        self.controls[1].content.controls.append(self.btn_confirm)
+        self.btn_confirm = ft.TextButton(
+            content=ft.Row(
+                controls=[
+                    ft.Text('Confirmar'),
+                    ft.Icon(name=ft.icons.CHECK_BOX_ROUNDED)
+                ],
+            ),
+            on_click=self.confirm,
+            on_hover=self.hover_confirm,
+            width=130,
+            height=50,
+            style=ft.ButtonStyle(
+                color='#ffffff',
+                bgcolor='#8c8c8c',
+                shape=ft.RoundedRectangleBorder(radius=3),
+            ),
+        )
+        self.controls[0].content.controls.append(
+            ft.Container(
+                content=ft.Row(
+                    controls=[
+                        self.btn_confirm,
+                    ],
+                    alignment=ft.MainAxisAlignment.END,
+                ),
+                padding=ft.padding.only(top=20)
+            ),
+        )
+
+    
+    def hover_confirm(self, event: ft.ControlEvent) -> NoReturn:
+        """On hover enter button."""
+        self.btn_confirm.style.bgcolor = (
+            '#1d7d1d'
+            if event.data == 'true'
+            else '#8c8c8c'
+        )
+        event.page.update()
 
     def confirm(self, event: ft.ControlEvent) -> NoReturn:
         """Confirmar."""
@@ -296,8 +335,11 @@ class FormAluno(ft.View):
         )
         list_alunos.append(result)
         logging.info(result)
-        for campos in self.controls[1].content.controls:
-            campos.value = ''
+        for campos in self.controls[0].content.controls[1:-1]:
+            if campos.label == 'Nota Nova chance' or campos.label == 'Nota AVS':
+                campos.value = 0
+            else:
+                campos.value = ''
         event.page.update()
 
 
@@ -440,7 +482,6 @@ class TableView(ft.View):
                 ],
             )
         if user_active[-1].status == 'professor':
-            print(item[9])
             return ft.DataRow(
                 data=idx,
                 cells=[
