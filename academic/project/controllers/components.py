@@ -641,6 +641,15 @@ class AppBar(ft.AppBar):
                         text='Logoff',
                         on_click=lambda _: events.page.go('/login'),
                     ),
+                ] if user_active[-1].status == 'professor' else [
+                    ft.PopupMenuItem(
+                        text='Visualizar notas',
+                        on_click=lambda _: events.page.go('/notas'),
+                    ),
+                    ft.PopupMenuItem(
+                        text='Logoff',
+                        on_click=lambda _: events.page.go('/login'),
+                    ),
                 ],
             ),
         ]
