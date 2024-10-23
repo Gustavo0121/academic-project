@@ -261,23 +261,17 @@ class FormAluno(ft.View):
 
     def confirm(self, event: ft.ControlEvent) -> NoReturn:
         """Confirmar."""
-        notas = [
-            float(self.simulado1.value),
-            float(self.simulado2.value),
-            float(self.nota_av.value),
-            float(self.nota_nc.value),
-            float(self.nota_avs.value),
-        ]
+        nota_final = float(self.simulado1.value) + float(self.simulado2.value) + float(self.nota_av.value) + float(self.nota_nc.value) + float(self.nota_avs.value)
         execute(
             [
                 f"""INSERT INTO notas(
                 nome, turma, nota_simulado1, nota_simulado2, nota_av, nota_nc,
-                nota_avs, status) VALUES
+                nota_avs, nota_final, status) VALUES
                 ('{self.name.value}', '{self.turma.value}',
                 {self.simulado1.value}, {self.simulado2.value},
                 {self.nota_av.value}, {self.nota_nc.value},
-                {self.nota_avs.value},
-                {1 if sum(notas) >= MEDIA else 0})""",
+                {self.nota_avs.value}, {nota_final},
+                {1 if nota_final >= MEDIA else 0})""",
             ],
         )
         result = Aluno(
@@ -337,6 +331,9 @@ class TableView(ft.View):
                     ft.Text('Nota AVS'),
                 ),
                 ft.DataColumn(
+                    ft.Text('Nota final'),
+                ),
+                ft.DataColumn(
                     ft.Text('Status'),
                 ),
             ],
@@ -369,6 +366,9 @@ class TableView(ft.View):
                 ),
                 ft.DataColumn(
                     ft.Text('Nota AVS'),
+                ),
+                ft.DataColumn(
+                    ft.Text('Nota final'),
                 ),
                 ft.DataColumn(
                     ft.Text('Status'),
@@ -414,14 +414,15 @@ class TableView(ft.View):
                     ft.DataCell(ft.Text(f'{item[5]}')),
                     ft.DataCell(ft.Text(f'{item[6]}')),
                     ft.DataCell(ft.Text(f'{item[7]}')),
+                    ft.DataCell(ft.Text(f'{item[8]}')),
                     ft.DataCell(
                         ft.Container(
                             content=ft.Text(
-                                'Aprovado' if bool(item[8]) else 'Reprovado',
+                                'Aprovado' if bool(item[9]) else 'Reprovado',
                                 style=ft.TextStyle(weight=ft.FontWeight.BOLD),
                             ),
                             bgcolor=ft.colors.with_opacity(0.8, '#03fc03')
-                            if bool(item[8])
+                            if bool(item[9])
                             else ft.colors.with_opacity(0.8, '#bf0a0a'),
                             width=150,
                             alignment=ft.alignment.center,
@@ -430,6 +431,7 @@ class TableView(ft.View):
                 ],
             )
         if user_active[-1].status == 'professor':
+            print(item[9])
             return ft.DataRow(
                 data=idx,
                 cells=[
@@ -441,14 +443,15 @@ class TableView(ft.View):
                     ft.DataCell(ft.Text(f'{item[5]}')),
                     ft.DataCell(ft.Text(f'{item[6]}')),
                     ft.DataCell(ft.Text(f'{item[7]}')),
+                    ft.DataCell(ft.Text(f'{item[8]}')),
                     ft.DataCell(
                         ft.Container(
                             content=ft.Text(
-                                'Aprovado' if bool(item[8]) else 'Reprovado',
+                                'Aprovado' if bool(item[9]) else 'Reprovado',
                                 style=ft.TextStyle(weight=ft.FontWeight.BOLD),
                             ),
                             bgcolor=ft.colors.with_opacity(0.8, '#03fc03')
-                            if bool(item[8])
+                            if bool(item[9])
                             else ft.colors.with_opacity(0.8, '#bf0a0a'),
                             width=150,
                             alignment=ft.alignment.center,
@@ -526,8 +529,13 @@ class TableView(ft.View):
                         value=item[7],
                     ),
                     ft.TextField(
+                        label='Nota final',
+                        value=item[8],
+                        read_only=True,
+                    ),
+                    ft.TextField(
                         label='Status',
-                        value='Aprovado' if bool(item[8]) else 'Reprovado',
+                        value='Aprovado' if bool(item[9]) else 'Reprovado',
                         read_only=True,
                     ),
                 ],
@@ -553,24 +561,17 @@ class TableView(ft.View):
                                 self.dlg_modal.content.controls[5].value,
                                 self.dlg_modal.content.controls[6].value,
                                 self.dlg_modal.content.controls[7].value,
-                                1
-                                if float(
-                                    self.dlg_modal.content.controls[3].value,
-                                )
-                                + float(
-                                    self.dlg_modal.content.controls[4].value,
-                                )
-                                + float(
-                                    self.dlg_modal.content.controls[5].value,
-                                )
-                                + float(
-                                    self.dlg_modal.content.controls[6].value,
-                                )
-                                + float(
-                                    self.dlg_modal.content.controls[7].value,
-                                )
-                                >= MEDIA
-                                else 0,
+                                (float(self.dlg_modal.content.controls[3].value) +
+                                float(self.dlg_modal.content.controls[4].value) +
+                                float(self.dlg_modal.content.controls[5].value) +
+                                float(self.dlg_modal.content.controls[6].value) +
+                                float(self.dlg_modal.content.controls[7].value)),
+                                1 if (float(self.dlg_modal.content.controls[3].value) +
+                                float(self.dlg_modal.content.controls[4].value) +
+                                float(self.dlg_modal.content.controls[5].value) +
+                                float(self.dlg_modal.content.controls[6].value) +
+                                float(self.dlg_modal.content.controls[7].value))
+                                >= MEDIA else 0,
                             ),
                         ),
                     ),
@@ -590,18 +591,11 @@ class TableView(ft.View):
         item: tuple,
     ) -> NoReturn:
         """Edit form data."""
-        notas = [
-            float(item[3]),
-            float(item[4]),
-            float(item[5]),
-            float(item[6]),
-            float(item[7]),
-        ]
         execute([
             f"""UPDATE notas SET nota_simulado1 = {item[3]},
             nota_simulado2 = {item[4]}, nota_av = {item[5]},
-            nota_nc = {item[6]}, nota_avs = {item[7]},
-            status = {1 if sum(notas) >= MEDIA else 0} WHERE id = {idx[1]}""",
+            nota_nc = {item[6]}, nota_avs = {item[7]}, nota_final = {item[8]},
+            status = {item[9]} WHERE id = {idx[1]}""",
         ])
         self.tabela_prof.rows[idx[0]] = self.create_row(idx[0], item)
         event.page.close(self.dlg_modal)
