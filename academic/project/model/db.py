@@ -58,6 +58,7 @@ if not DB.is_file():
         nota_av integer not null,
         nota_nc integer not null,
         nota_avs integer not null,
+        nota_final integer not null,
         status numeric not null)
 """,
     ])
