@@ -207,7 +207,6 @@ select = [
 ignore = [
   "INP001",
   "CPY001",
-  "S608",
   "FA100",  # Conflit with mypy
   "UP006",  # Conflit with mypy
   "UP007",  # Conflit with mypy

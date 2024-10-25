@@ -12,27 +12,27 @@ import sqlite3
 from academic.project import DB, users
 
 
-def execute(comandos: list[str]) -> bool:
+def execute(comandos: list[str], parametros: tuple = ()) -> bool:
     """Função para executar comandos SQL no banco de dados."""
     conn = sqlite3.connect(DB.as_posix())
 
     cursor = conn.cursor()
 
     for comando in comandos:
-        cursor.execute(comando)
+        cursor.execute(comando, parametros)
         conn.commit()
 
     conn.close()
     return True
 
 
-def query(comando: str) -> list:
+def query(comando: str, parametros: tuple = ()) -> list:
     """Função para fazer uma query no banco."""
     conn = sqlite3.connect(DB.as_posix())
 
     cursor = conn.cursor()
 
-    cursor.execute(comando)
+    cursor.execute(comando, parametros)
     query_list = cursor.fetchall()
     conn.commit()
 
