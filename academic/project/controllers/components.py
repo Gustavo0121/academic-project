@@ -19,6 +19,18 @@ class Login(ft.View):
         """Init for Login class."""
         super().__init__()
         self.events = events
+        self.appbar = AppBar(
+            events,
+            'Sistema de notas',
+            actions=[
+                ft.IconButton(
+                    icon=ft.icons.EXIT_TO_APP,
+                    icon_color='#A40000',
+                    on_click=self.close_app,
+                    icon_size=40,
+                ),
+            ],
+        )
         self.route: str | None = kwargs.get('route')
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
@@ -86,7 +98,10 @@ class Login(ft.View):
                             padding=ft.padding.only(bottom=85, top=20),
                         ),
                         self.btn_email,
-                        ft.Text('------------------- ou -------------------',  weight=ft.FontWeight.BOLD),
+                        ft.Text(
+                            '------------------- ou -------------------',
+                            weight=ft.FontWeight.BOLD,
+                        ),
                         self.matricula,
                         self.senha,
                         ft.Container(
@@ -100,7 +115,7 @@ class Login(ft.View):
                             bgcolor='#ebedeb',
                             border=ft.border.all(1, '#0a0a0a'),
                             width=320,
-                            padding=ft.padding.only(right=8)
+                            padding=ft.padding.only(right=8),
                         ),
                         ft.Container(
                             content=self.entrar,
@@ -114,7 +129,7 @@ class Login(ft.View):
                 width=450,
                 height=740,
                 padding=30,
-                border=ft.border.all(3, 'black')
+                border=ft.border.all(3, 'black'),
             ),
         ]
 
@@ -184,6 +199,10 @@ class Login(ft.View):
         self.entrar.disabled = not self.captcha.value
         event.page.update()
 
+    def close_app(self, event: ft.ControlEvent) -> None:
+        """Close app."""
+        event.page.window_close()
+
 
 class FormAluno(ft.View):
     """Classe dos formulários de aluno."""
@@ -206,7 +225,7 @@ class FormAluno(ft.View):
                 width=700,
                 height=550,
                 padding=30,
-                border=ft.border.all(3, 'black')
+                border=ft.border.all(3, 'black'),
             ),
         ]
 
@@ -272,7 +291,7 @@ class FormAluno(ft.View):
             content=ft.Row(
                 controls=[
                     ft.Text('Confirmar'),
-                    ft.Icon(name=ft.icons.CHECK_BOX_ROUNDED)
+                    ft.Icon(name=ft.icons.CHECK_BOX_ROUNDED),
                 ],
             ),
             on_click=self.confirm,
@@ -293,23 +312,26 @@ class FormAluno(ft.View):
                     ],
                     alignment=ft.MainAxisAlignment.END,
                 ),
-                padding=ft.padding.only(top=20)
+                padding=ft.padding.only(top=20),
             ),
         )
 
-    
     def hover_confirm(self, event: ft.ControlEvent) -> NoReturn:
         """On hover enter button."""
         self.btn_confirm.style.bgcolor = (
-            '#1d7d1d'
-            if event.data == 'true'
-            else '#8c8c8c'
+            '#1d7d1d' if event.data == 'true' else '#8c8c8c'
         )
         event.page.update()
 
     def confirm(self, event: ft.ControlEvent) -> NoReturn:
         """Confirmar."""
-        nota_final = float(self.simulado1.value) + float(self.simulado2.value) + float(self.nota_av.value) + float(self.nota_nc.value) + float(self.nota_avs.value)
+        nota_final = (
+            float(self.simulado1.value)
+            + float(self.simulado2.value)
+            + float(self.nota_av.value)
+            + float(self.nota_nc.value)
+            + float(self.nota_avs.value)
+        )
         execute(
             [
                 f"""INSERT INTO notas(
@@ -336,10 +358,9 @@ class FormAluno(ft.View):
         list_alunos.append(result)
         logging.info(result)
         for campos in self.controls[0].content.controls[1:-1]:
-            if campos.label == 'Nota Nova chance' or campos.label == 'Nota AVS':
-                campos.value = 0
-            else:
-                campos.value = ''
+            campos.value = (
+                0 if campos.label in ('Nota Nova chance', 'Nota AVS') else ''
+            )
         event.page.update()
 
 
@@ -611,17 +632,63 @@ class TableView(ft.View):
                                 self.dlg_modal.content.controls[5].value,
                                 self.dlg_modal.content.controls[6].value,
                                 self.dlg_modal.content.controls[7].value,
-                                (float(self.dlg_modal.content.controls[3].value) +
-                                float(self.dlg_modal.content.controls[4].value) +
-                                float(self.dlg_modal.content.controls[5].value) +
-                                float(self.dlg_modal.content.controls[6].value) +
-                                float(self.dlg_modal.content.controls[7].value)),
-                                1 if (float(self.dlg_modal.content.controls[3].value) +
-                                float(self.dlg_modal.content.controls[4].value) +
-                                float(self.dlg_modal.content.controls[5].value) +
-                                float(self.dlg_modal.content.controls[6].value) +
-                                float(self.dlg_modal.content.controls[7].value))
-                                >= MEDIA else 0,
+                                (
+                                    float(
+                                        self.dlg_modal.content.controls[
+                                            3
+                                        ].value,
+                                    )
+                                    + float(
+                                        self.dlg_modal.content.controls[
+                                            4
+                                        ].value,
+                                    )
+                                    + float(
+                                        self.dlg_modal.content.controls[
+                                            5
+                                        ].value,
+                                    )
+                                    + float(
+                                        self.dlg_modal.content.controls[
+                                            6
+                                        ].value,
+                                    )
+                                    + float(
+                                        self.dlg_modal.content.controls[
+                                            7
+                                        ].value,
+                                    )
+                                ),
+                                1
+                                if (
+                                    float(
+                                        self.dlg_modal.content.controls[
+                                            3
+                                        ].value,
+                                    )
+                                    + float(
+                                        self.dlg_modal.content.controls[
+                                            4
+                                        ].value,
+                                    )
+                                    + float(
+                                        self.dlg_modal.content.controls[
+                                            5
+                                        ].value,
+                                    )
+                                    + float(
+                                        self.dlg_modal.content.controls[
+                                            6
+                                        ].value,
+                                    )
+                                    + float(
+                                        self.dlg_modal.content.controls[
+                                            7
+                                        ].value,
+                                    )
+                                )
+                                >= MEDIA
+                                else 0,
                             ),
                         ),
                     ),
@@ -655,48 +722,77 @@ class TableView(ft.View):
 class AppBar(ft.AppBar):
     """Appbar component."""
 
-    def __init__(self, events: ft.ControlEvent, titulo: str = ''):
+    def __init__(
+        self,
+        events: ft.ControlEvent,
+        titulo: str = '',
+        actions: list | None = None,
+    ):
         """Init for Appbar class."""
         super().__init__()
         self.events = events
-        self.title = ft.Text(titulo, selectable=True)
+        self.title = ft.Text(
+            titulo,
+            selectable=True,
+            weight=ft.FontWeight.BOLD,
+            size=30,
+        )
         self.center_title = True
+        self.toolbar_height = 70
 
         self.alert = ft.AlertDialog(
             title='Não há dados para visualizar.',
         )
 
-        self.leading = ft.Icon(ft.icons.MENU_BOOK)
+        self.leading = ft.Icon(ft.icons.MENU_BOOK, size=40)
 
-        self.actions = [
-            ft.PopupMenuButton(
-                visible=True,
-                icon=ft.icons.MENU,
-                items=[
-                    ft.PopupMenuItem(
-                        text='Formulário',
-                        on_click=lambda _: events.page.go('/'),
-                    ),
-                    ft.PopupMenuItem(
-                        text='Visualizar notas',
-                        on_click=lambda _: events.page.go('/notas'),
-                    ),
-                    ft.PopupMenuItem(
-                        text='Logoff',
-                        on_click=lambda _: events.page.go('/login'),
-                    ),
-                ] if user_active[-1].status == 'professor' else [
-                    ft.PopupMenuItem(
-                        text='Visualizar notas',
-                        on_click=lambda _: events.page.go('/notas'),
-                    ),
-                    ft.PopupMenuItem(
-                        text='Logoff',
-                        on_click=lambda _: events.page.go('/login'),
-                    ),
-                ],
-            ),
-        ]
+        self.actions = (
+            actions
+            if actions
+            else [
+                ft.PopupMenuButton(
+                    visible=True,
+                    icon=ft.icons.MENU,
+                    items=[
+                        ft.PopupMenuItem(
+                            text='Formulário',
+                            on_click=lambda _: events.page.go('/'),
+                        ),
+                        ft.PopupMenuItem(
+                            text='Visualizar notas',
+                            on_click=lambda _: events.page.go('/notas'),
+                        ),
+                        ft.PopupMenuItem(
+                            text='Logoff',
+                            on_click=lambda _: events.page.go('/login'),
+                        ),
+                        ft.PopupMenuItem(
+                            text='Exit',
+                            on_click=self.close_app,
+                        ),
+                    ]
+                    if user_active[-1].status == 'professor'
+                    else [
+                        ft.PopupMenuItem(
+                            text='Visualizar notas',
+                            on_click=lambda _: events.page.go('/notas'),
+                        ),
+                        ft.PopupMenuItem(
+                            text='Logoff',
+                            on_click=lambda _: events.page.go('/login'),
+                        ),
+                        ft.PopupMenuItem(
+                            text='Exit',
+                            on_click=self.close_app,
+                        ),
+                    ],
+                ),
+            ]
+        )
+
+    def close_app(self, event: ft.ControlEvent) -> None:
+        """Close app."""
+        event.page.window_close()
 
 
 if __name__ == '__main__':
