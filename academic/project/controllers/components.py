@@ -148,8 +148,8 @@ class Login(ft.View):
 
         if any(user[: len(prof_valid)] == prof_valid for user in users):
             user_act = query(
-                'SELECT * from users WHERE matricula == '
-                f"{self.matricula.value} and senha == '{self.senha.value}'",
+                r'SELECT * from users WHERE matricula == ? and senha == ?',
+                (self.matricula.value, self.senha.value),
             )
             user_active.append(
                 User(
@@ -163,8 +163,8 @@ class Login(ft.View):
             event.page.go('/')
         elif any(user[: len(aluno_valid)] == aluno_valid for user in users):
             user_act = query(
-                'SELECT * from users WHERE matricula == '
-                f"{self.matricula.value} and senha == '{self.senha.value}'",
+                r'SELECT * from users WHERE matricula == ? and senha == ?',
+                (self.matricula.value, self.senha.value),
             )
             user_active.append(
                 User(
@@ -551,7 +551,7 @@ class TableView(ft.View):
         """Delete a row of DataTable."""
         logging.info(idx := event.control.data)
         del self.tabela_prof.rows[idx[0]]
-        execute([f'DELETE FROM notas WHERE id = {idx[1]}'])
+        execute([f'DELETE FROM notas WHERE id = {idx[1]}'])  #noqa: S608
         event.page.update()
 
     def dlgmodal(self, event: ft.ControlEvent) -> None:
@@ -708,12 +708,24 @@ class TableView(ft.View):
         item: tuple,
     ) -> NoReturn:
         """Edit form data."""
-        execute([
-            f"""UPDATE notas SET nota_simulado1 = {item[3]},
-            nota_simulado2 = {item[4]}, nota_av = {item[5]},
-            nota_nc = {item[6]}, nota_avs = {item[7]}, nota_final = {item[8]},
-            status = {item[9]} WHERE id = {idx[1]}""",
-        ])
+        execute(
+            [
+                r"""UPDATE notas SET nota_simulado1 = ?,
+            nota_simulado2 = ?, nota_av = ?,
+            nota_nc = ?, nota_avs = ?, nota_final = ?,
+            status = ? WHERE id = ?""",
+            ],
+            (
+                item[3],
+                item[4],
+                item[5],
+                item[6],
+                item[7],
+                item[8],
+                item[9],
+                idx[1],
+            ),
+        )
         self.tabela_prof.rows[idx[0]] = self.create_row(idx[0], item)
         event.page.close(self.dlg_modal)
         self.tabela_prof.update()
